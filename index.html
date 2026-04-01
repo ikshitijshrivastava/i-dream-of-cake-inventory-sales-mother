@@ -2037,7 +2037,23 @@ window.exportExpenses=function(){
   const csv=rows.map(r=>r.map(x=>`"${(x||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='expenses_'+toDay()+'.csv';a.click();
 };
+// Listen to all companion orders in real-time
+function listenCompanionOrders() {
+  const q = query(collection(db, 'sharedOrders'), orderBy('createdAt', 'desc'));
+  onSnapshot(q, snap => {
+    const companionOrders = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    // companionOrders now has all field orders — display in Mother app
+    renderCompanionOrdersDashboard(companionOrders);
+  });
+}
 
+// Listen to companion user activity
+function listenCompanionUsers() {
+  onSnapshot(collection(db, 'companions'), snap => {
+    const companions = snap.docs.map(d => ({uid: d.id, ...d.data()}));
+    // companions has all field users with lastSeen, role, etc.
+  });
+}
 // ══ COUNTDOWN ══
 const t0=Date.now(),REMS=30*60*1000;
 setInterval(()=>{
