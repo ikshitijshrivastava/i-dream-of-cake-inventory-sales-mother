@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="IDoCake Inventory">
+<link rel="manifest" href="manifest.json">
+<title>Inventory — I Dream of Cake</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0f14;color:#e8eaf0;font-family:Arial,sans-serif;font-size:14px;min-height:100vh;}
+h1,h2,.syne{font-family:Georgia,serif;}
+
+/* ── LOGIN (reuse from main) ── */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0d0f14 0%,#1a1040 100%);}
+.login-box{background:#161920;border:1px solid #2a2f3a;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;text-align:center;}
+.login-logo .ico{font-size:48px;margin-bottom:8px;}
+.login-logo h1{font-size:22px;font-weight:900;color:#f0a500;}
+.login-logo p{font-size:12px;color:#7a8099;margin-top:4px;margin-bottom:20px;}
+.login-form{display:flex;flex-direction:column;gap:12px;}
+.login-form input{background:#1e2229;border:1px solid #2a2f3a;border-radius:9px;padding:12px 14px;color:#e8eaf0;font-size:14px;width:100%;}
+.login-form input:focus{outline:none;border-color:#f0a500;}
+.login-btn{background:#f0a500;color:#000;border:none;border-radius:9px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;}
+.login-err{background:rgba(240,101,101,.15);border:1px solid rgba(240,101,101,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#f06565;display:none;margin-top:6px;}
+.login-err.show{display:block;}
+.back-link{margin-top:16px;font-size:12px;color:#7a8099;}
+.back-link a{color:#f0a500;cursor:pointer;text-decoration:none;}
+
+/* ── SYNC DOT ── */
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.sync-ok{background:#3ecf8e;}.sync-err{background:#f06565;}.sync-ing{background:#f0a500;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── HEADER ── */
+.hdr{background:#161920;border-bottom:1px solid #2a2f3a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:50;}
+.hlogo{width:34px;height:34px;background:linear-gradient(135deg,#f0a500,#e05c3a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.htitle{font-size:15px;font-weight:bold;}.htitle span{color:#f0a500;}
+.hsubtitle{font-size:10px;color:#7a8099;}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ── BUTTONS ── */
+button{cursor:pointer;border:none;font-family:Arial,sans-serif;font-size:13px;transition:opacity .15s;}
+button:active{opacity:.75;}
+.btn{background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;padding:7px 12px;border-radius:8px;font-weight:500;}
+.btn:hover{background:#2a2f3a;}
+.btn-gold{background:#f0a500;color:#000;font-weight:700;}
+.btn-gold:hover{background:#d49200;}
+.btn-red{background:rgba(240,101,101,.18);color:#f06565;border:1px solid rgba(240,101,101,.4);}
+.btn-green{background:rgba(62,207,142,.15);color:#3ecf8e;border:1px solid rgba(62,207,142,.3);}
+.btn-blue{background:rgba(91,141,238,.15);color:#5b8dee;border:1px solid rgba(91,141,238,.3);}
+.btn-purple{background:rgba(167,139,250,.14);color:#a78bfa;border:1px solid rgba(167,139,250,.3);}
+.btn-orange{background:rgba(224,92,58,.15);color:#e05c3a;border:1px solid rgba(224,92,58,.3);}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#161920;border-top:1px solid #2a2f3a;display:flex;z-index:45;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;color:#7a8099;font-size:10px;gap:3px;transition:color .2s;}
+.bnav-item.active{color:#f0a500;}
+.bnav-ico{font-size:18px;line-height:1;}
+
+/* ── PAGES ── */
+.page{display:none;padding-bottom:70px;}
+.page.active{display:block;}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;padding:11px 14px;}
+.stat{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:12px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.s-gold::before{background:#f0a500;}.s-blue::before{background:#5b8dee;}.s-green::before{background:#3ecf8e;}.s-red::before{background:#f06565;}.s-orange::before{background:#e05c3a;}.s-purple::before{background:#a78bfa;}
+.slbl{font-size:10px;color:#7a8099;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.sval{font-size:17px;font-weight:bold;}
+.s-gold .sval{color:#f0a500;}.s-blue .sval{color:#5b8dee;}.s-green .sval{color:#3ecf8e;}.s-red .sval{color:#f06565;}.s-orange .sval{color:#e05c3a;}.s-purple .sval{color:#a78bfa;}
+.ssub{font-size:10px;color:#7a8099;margin-top:2px;}
+
+/* ── TOOLBAR ── */
+.toolbar{padding:0 14px 9px;display:flex;gap:6px;flex-wrap:wrap;}
+.toolbar input,.toolbar select{background:#161920;border:1px solid #2a2f3a;border-radius:8px;padding:8px 10px;color:#e8eaf0;font-size:13px;}
+.toolbar input{flex:1;min-width:140px;}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:#f0a500;}
+
+/* ── CONTENT ── */
+.content{padding:0 14px 80px;}
+
+/* ── TABLE ── */
+.card-box{background:#161920;border:1px solid #2a2f3a;border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.card-box-title{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #2a2f3a;background:#1e2229;}
+.card-box-title span{font-size:13px;font-weight:bold;color:#f0a500;}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;min-width:500px;}
+th{background:rgba(255,255,255,.03);padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#7a8099;border-bottom:1px solid #2a2f3a;white-space:nowrap;}
+td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;font-size:13px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:bold;white-space:nowrap;}
+.b-green{background:rgba(62,207,142,.12);color:#3ecf8e;border:1px solid rgba(62,207,142,.25);}
+.b-gold{background:rgba(240,165,0,.12);color:#f0a500;border:1px solid rgba(240,165,0,.25);}
+.b-red{background:rgba(240,101,101,.12);color:#f06565;border:1px solid rgba(240,101,101,.25);}
+.b-blue{background:rgba(91,141,238,.12);color:#5b8dee;border:1px solid rgba(91,141,238,.25);}
+.b-purple{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);}
+.b-orange{background:rgba(224,92,58,.12);color:#e05c3a;border:1px solid rgba(224,92,58,.25);}
+.b-gray{background:rgba(122,128,153,.12);color:#7a8099;border:1px solid rgba(122,128,153,.25);}
+
+/* ── MODALS ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:12px;}
+.overlay.show{display:flex;}
+.modal{background:#161920;border:1px solid #2a2f3a;border-radius:16px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:20px;position:relative;}
+.modal-sm{max-width:420px;}
+.modal-confirm{max-width:340px;text-align:center;}
+.mclose{position:absolute;top:13px;right:13px;background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.mtitle{font-size:16px;font-weight:bold;margin-bottom:16px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.ffull{grid-column:1/-1;}
+.fgrp{display:flex;flex-direction:column;gap:4px;}
+.flbl{font-size:11px;color:#7a8099;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:500;}
+.finput{background:#1e2229;border:1px solid #2a2f3a;border-radius:8px;padding:9px 10px;color:#e8eaf0;font-size:13px;width:100%;}
+.finput:focus{outline:none;border-color:#f0a500;}
+select.finput{cursor:pointer;}
+option{background:#1e2229;color:#e8eaf0;}
+.factions{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
+.fsep{grid-column:1/-1;border-top:1px solid #2a2f3a;margin:4px 0;}
+
+/* ── ALERT BANNERS ── */
+.alert-banner{margin:0 14px 9px;border-radius:10px;padding:10px 13px;}
+.alert-warn{background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);}
+.alert-danger{background:rgba(240,101,101,.1);border:1px solid rgba(240,101,101,.3);}
+.alert-title{font-size:12px;font-weight:bold;margin-bottom:5px;}
+.alert-warn .alert-title{color:#f0a500;}
+.alert-danger .alert-title{color:#f06565;}
+.alert-row{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 18px;color:#7a8099;}
+.empty-ico{font-size:38px;margin-bottom:10px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#1e2229;border:1px solid #2a2f3a;border-radius:10px;padding:10px 18px;font-size:13px;color:#e8eaf0;z-index:500;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ── FOOTER ── */
+.footer{position:fixed;bottom:52px;left:0;right:0;background:#161920;border-top:1px solid #2a2f3a;padding:5px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#7a8099;z-index:40;}
+
+/* ── RECON TABLE ── */
+.recon-row-match td{background:rgba(62,207,142,.04);}
+.recon-row-mismatch td{background:rgba(240,101,101,.06);}
+
+/* ── SECTION TABS ── */
+.sec-tabs{display:flex;gap:6px;padding:9px 14px;flex-wrap:wrap;border-bottom:1px solid #2a2f3a;margin-bottom:10px;}
+.sec-tab{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #2a2f3a;background:#1e2229;color:#7a8099;transition:all .2s;}
+.sec-tab.active{background:rgba(240,165,0,.15);color:#f0a500;border-color:rgba(240,165,0,.4);}
+
+/* ── RECEIVE GRN ── */
+.grn-item{background:#1e2229;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid #2a2f3a;}
+.grn-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.grn-item-name{font-weight:600;font-size:13px;}
+.grn-mismatch{background:rgba(240,101,101,.1);border:1px solid rgba(240,101,101,.3);border-radius:6px;padding:6px 10px;font-size:12px;color:#f06565;margin-top:6px;}
+
+/* ── REPLENISH ── */
+.repl-card{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:12px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px;}
+.repl-prio-high{border-left:3px solid #f06565;}
+.repl-prio-med{border-left:3px solid #f0a500;}
+.repl-prio-low{border-left:3px solid #5b8dee;}
+.repl-info{flex:1;}
+.repl-name{font-weight:600;font-size:13px;}
+.repl-meta{font-size:11px;color:#7a8099;margin-top:2px;}
+
+/* ── RETURN CARD ── */
+.ret-card{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:12px 14px;margin-bottom:9px;}
+.ret-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.ret-name{font-weight:600;font-size:13px;}
+.ret-meta{font-size:11px;color:#7a8099;margin-top:2px;}
+
+@media(max-width:560px){
+  .fgrid{grid-template-columns:1fr;}
+  .stats{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen" class="login-screen" style="display:none;">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="ico">🎂</div>
+      <h1>I Dream of Cake</h1>
+      <p>Inventory Management</p>
+    </div>
+    <div class="login-form">
+      <input id="authEmail" type="email" placeholder="Email address" autocomplete="email">
+      <input id="authPass" type="password" placeholder="Password" autocomplete="current-password">
+      <div id="authErr" class="login-err"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In</button>
+    </div>
+    <div class="back-link"><a href="index.html">← Back to Orders</a></div>
+  </div>
+</div>
+
+<!-- ══ APP SCREEN ══ -->
+<div id="appScreen" style="display:none;">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <div class="hlogo">📦</div>
+    <div>
+      <div class="htitle">I Dream of <span>Cake</span></div>
+      <div class="hsubtitle"><span class="sync-dot sync-ing" id="syncDot"></span><span id="syncTxt">Connecting…</span></div>
+    </div>
+  </div>
+  <div class="hbtns">
+    <button class="btn btn-sm" onclick="openImportModal()">⬆ Import</button>
+    <button class="btn btn-sm btn-green" onclick="exportCSV()">⬇ Export</button>
+    <button class="btn btn-sm" onclick="window.location.href='index.html'">📋 Orders</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bnav-item" id="nav_orders_link" onclick="window.location.href='index.html'">
+    <span class="bnav-ico">&#128203;</span><span>Orders</span>
+  </div>
+  <div class="bnav-item active" id="nav_stock" onclick="switchPage('stock')">
+    <span class="bnav-ico">&#128230;</span><span>Stock</span>
+  </div>
+  <div class="bnav-item" id="nav_receive" onclick="switchPage('receive')">
+    <span class="bnav-ico">&#128666;</span><span>Receive</span>
+  </div>
+  <div class="bnav-item" id="nav_returns" onclick="switchPage('returns')">
+    <span class="bnav-ico">&#8617;&#65039;</span><span>Returns</span>
+  </div>
+  <div class="bnav-item" id="nav_recon" onclick="switchPage('recon')">
+    <span class="bnav-ico">&#128269;</span><span>Recon</span>
+  </div>
+  <div class="bnav-item" id="nav_replen" onclick="switchPage('replen')">
+    <span class="bnav-ico">&#128276;</span><span>Reorder</span>
+  </div>
+  <div class="bnav-item" onclick="window.location.href='sales.html'">
+    <span class="bnav-ico">&#128188;</span><span>Sales</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PAGE: STOCK -->
+<!-- ════════════════════════════════════════════ -->
+<div class="page active" id="pageStock">
+
+  <div class="stats" id="stockStats">
+    <div class="stat s-blue"><div class="slbl">Total Items</div><div class="sval" id="stTotalItems">0</div></div>
+    <div class="stat s-gold"><div class="slbl">Low Stock</div><div class="sval" id="stLowStock">0</div></div>
+    <div class="stat s-red"><div class="slbl">Expiring ≤7d</div><div class="sval" id="stExpiring">0</div></div>
+    <div class="stat s-green"><div class="slbl">Locations</div><div class="sval" id="stLocations">0</div></div>
+  </div>
+
+  <!-- Alerts -->
+  <div id="stockAlerts"></div>
+
+  <!-- Section tabs -->
+  <div class="sec-tabs">
+    <div class="sec-tab active" id="stab_all" onclick="filterStockTab('all')">All Items</div>
+    <div class="sec-tab" id="stab_low" onclick="filterStockTab('low')">⚠ Low Stock</div>
+    <div class="sec-tab" id="stab_expiring" onclick="filterStockTab('expiring')">⏰ Expiring</div>
+    <div class="sec-tab" id="stab_damages" onclick="filterStockTab('damages')">🔴 Damages</div>
+  </div>
+
+  <div class="toolbar">
+    <input id="stockSearch" placeholder="Search item, location, batch…" oninput="renderStock()">
+    <select id="stockLocation" onchange="renderStock()">
+      <option value="">All Locations</option>
+    </select>
+    <button class="btn btn-gold btn-sm" onclick="openItemModal()">+ Add Item</button>
+  </div>
+
+  <div class="content">
+    <div class="card-box">
+      <div class="tscroll">
+        <table>
+          <thead><tr>
+            <th>Item / SKU</th><th>Category</th><th>Location</th><th>Batch</th><th>Qty</th><th>Unit</th><th>Expiry</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="stockBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PAGE: RECEIVE (GRN) -->
+<!-- ════════════════════════════════════════════ -->
+<div class="page" id="pageReceive">
+  <div class="toolbar" style="padding-top:11px;">
+    <select id="grnFilter" onchange="renderGRNs()" class="finput" style="flex:1;">
+      <option value="">All Receipts</option>
+      <option value="matched">✅ Matched</option>
+      <option value="mismatch">⚠ Mismatch</option>
+      <option value="pending">⏳ Pending</option>
+    </select>
+    <button class="btn btn-gold btn-sm" onclick="openGRNModal()">+ Receive Goods</button>
+  </div>
+  <div class="content">
+    <div id="grnList"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PAGE: RETURNS -->
+<!-- ════════════════════════════════════════════ -->
+<div class="page" id="pageReturns">
+  <div class="sec-tabs" style="padding-top:11px;">
+    <div class="sec-tab active" id="rtab_sales" onclick="filterReturnTab('sales')">Sales Returns</div>
+    <div class="sec-tab" id="rtab_purchase" onclick="filterReturnTab('purchase')">Purchase Returns</div>
+    <div class="sec-tab" id="rtab_damages" onclick="filterReturnTab('damages')">Damages & Claims</div>
+  </div>
+  <div class="toolbar">
+    <input id="retSearch" placeholder="Search…" oninput="renderReturns()" style="flex:1;">
+    <button class="btn btn-gold btn-sm" onclick="openReturnModal()">+ Add Return</button>
+  </div>
+  <div class="content">
+    <div id="returnsList"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PAGE: RECONCILIATION -->
+<!-- ════════════════════════════════════════════ -->
+<div class="page" id="pageRecon">
+  <div style="padding:11px 14px 0;">
+    <div style="background:rgba(91,141,238,.1);border:1px solid rgba(91,141,238,.3);border-radius:10px;padding:11px 13px;margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:bold;color:#5b8dee;margin-bottom:4px;">📋 Physical vs System Reconciliation</div>
+      <div style="font-size:12px;color:#7a8099;">Enter physical counts to compare with system stock. Mismatches are flagged for review.</div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <select id="reconLocation" onchange="loadRecon()" class="finput" style="flex:1;">
+      <option value="">All Locations</option>
+    </select>
+    <button class="btn btn-sm btn-blue" onclick="loadRecon()">🔄 Load</button>
+    <button class="btn btn-gold btn-sm" onclick="applyRecon()">✓ Apply Adjustments</button>
+  </div>
+  <div class="content">
+    <div class="card-box">
+      <div class="card-box-title"><span>Reconciliation Sheet</span><span id="reconDate" style="font-size:11px;color:#7a8099;"></span></div>
+      <div class="tscroll">
+        <table>
+          <thead><tr>
+            <th>Item</th><th>Location</th><th>System Qty</th><th>Physical Qty</th><th>Difference</th><th>Status</th>
+          </tr></thead>
+          <tbody id="reconBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="reconSummary"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PAGE: REPLENISHMENT -->
+<!-- ════════════════════════════════════════════ -->
+<div class="page" id="pageReplen">
+  <div style="padding:11px 14px 0;">
+    <div style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.25);border-radius:10px;padding:11px 13px;margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:bold;color:#f0a500;margin-bottom:4px;">🤖 Smart Replenishment Suggestions</div>
+      <div style="font-size:12px;color:#7a8099;">Based on stock levels vs reorder points and recent sales consumption.</div>
+    </div>
+  </div>
+  <div class="content" id="replenList"></div>
+</div>
+
+</div><!-- end appScreen -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<div class="footer" id="appFooter" style="display:none;">
+  <span id="cdtxt">I Dream of Cake — Inventory</span>
+  <span id="userLabel" style="color:#f0a500;"></span>
+</div>
+
+<!-- ════════════════ MODALS ════════════════ -->
+
+<!-- ADD / EDIT ITEM MODAL -->
+<div class="overlay" id="itemModal">
+  <div class="modal">
+    <button class="mclose btn" onclick="close_('itemModal')">✕</button>
+    <div class="mtitle syne" id="itemModalTitle">Add Stock Item</div>
+    <input type="hidden" id="im_id">
+    <div class="fgrid">
+      <div class="ffull fgrp"><div class="flbl">Item Name *</div><input class="finput" id="im_name" placeholder="e.g. Butter 500g"></div>
+      <div class="fgrp"><div class="flbl">SKU / Code</div><input class="finput" id="im_sku" placeholder="Auto if blank"></div>
+      <div class="fgrp"><div class="flbl">Category</div>
+        <select class="finput" id="im_cat">
+          <option>Ingredients</option><option>Packaging</option><option>Decorations</option><option>Baking Supplies</option><option>Dairy</option><option>Flour & Sugar</option><option>Flavours</option><option>Other</option>
+        </select>
+      </div>
+      <div class="fgrp"><div class="flbl">Location / Warehouse</div>
+        <input class="finput" id="im_location" placeholder="e.g. Main Kitchen, Fridge A" list="locationList">
+        <datalist id="locationList"></datalist>
+      </div>
+      <div class="fgrp"><div class="flbl">Quantity *</div><input type="number" class="finput" id="im_qty" placeholder="0" step="0.01"></div>
+      <div class="fgrp"><div class="flbl">Unit</div>
+        <select class="finput" id="im_unit">
+          <option>kg</option><option>g</option><option>L</option><option>ml</option><option>pcs</option><option>boxes</option><option>packets</option><option>rolls</option>
+        </select>
+      </div>
+      <div class="fgrp"><div class="flbl">Reorder Level</div><input type="number" class="finput" id="im_reorder" placeholder="Alert when below this"></div>
+      <div class="fgrp"><div class="flbl">Cost per Unit (Rs)</div><input type="number" class="finput" id="im_cost" placeholder="0"></div>
+      <div class="fgrp"><div class="flbl">Batch Number</div><input class="finput" id="im_batch" placeholder="Optional"></div>
+      <div class="fgrp"><div class="flbl">Expiry Date</div><input type="date" class="finput" id="im_expiry"></div>
+      <div class="fgrp"><div class="flbl">Supplier</div><input class="finput" id="im_supplier" placeholder="Supplier name"></div>
+      <div class="fgrp"><div class="flbl">Status</div>
+        <select class="finput" id="im_status">
+          <option value="ok">OK</option><option value="low">Low</option><option value="damaged">Damaged</option><option value="quarantine">Quarantine</option>
+        </select>
+      </div>
+      <div class="ffull fgrp"><div class="flbl">Notes</div><input class="finput" id="im_notes" placeholder="Any additional notes"></div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('itemModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIVE / GRN MODAL -->
+<div class="overlay" id="grnModal">
+  <div class="modal">
+    <button class="mclose btn" onclick="close_('grnModal')">✕</button>
+    <div class="mtitle syne">Receive Goods (GRN)</div>
+    <input type="hidden" id="grn_id">
+    <div class="fgrid">
+      <div class="fgrp"><div class="flbl">Invoice / Bill No. *</div><input class="finput" id="grn_invoice" placeholder="INV-2024-001"></div>
+      <div class="fgrp"><div class="flbl">Waybill / LR No.</div><input class="finput" id="grn_waybill" placeholder="WB/LR number"></div>
+      <div class="fgrp"><div class="flbl">Supplier *</div><input class="finput" id="grn_supplier" placeholder="Supplier name"></div>
+      <div class="fgrp"><div class="flbl">Date Received *</div><input type="date" class="finput" id="grn_date"></div>
+      <div class="fgrp"><div class="flbl">Receiving Location</div><input class="finput" id="grn_location" placeholder="e.g. Main Kitchen" list="locationList2">
+        <datalist id="locationList2"></datalist>
+      </div>
+      <div class="fgrp"><div class="flbl">Invoice Value (Rs)</div><input type="number" class="finput" id="grn_invvalue" placeholder="0"></div>
+    </div>
+    <div style="margin:14px 0 8px;font-size:12px;font-weight:bold;color:#f0a500;text-transform:uppercase;letter-spacing:.5px;">Items Received</div>
+    <div id="grnItems"></div>
+    <button class="btn btn-sm btn-blue" onclick="addGRNItem()" style="margin-bottom:12px;">+ Add Item Line</button>
+    <div class="fgrid">
+      <div class="ffull fgrp"><div class="flbl">Notes / Remarks</div><input class="finput" id="grn_notes" placeholder="Any discrepancies or notes"></div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('grnModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveGRN()">Save & Update Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- RETURN MODAL -->
+<div class="overlay" id="returnModal">
+  <div class="modal modal-sm">
+    <button class="mclose btn" onclick="close_('returnModal')">✕</button>
+    <div class="mtitle syne" id="returnModalTitle">Add Return / Damage</div>
+    <input type="hidden" id="ret_id">
+    <div class="fgrid">
+      <div class="fgrp ffull"><div class="flbl">Type *</div>
+        <select class="finput" id="ret_type" onchange="onRetTypeChange()">
+          <option value="sales_return">Sales Return</option>
+          <option value="purchase_return">Purchase Return</option>
+          <option value="damage">Damage</option>
+          <option value="claim">Supplier Claim</option>
+        </select>
+      </div>
+      <div class="fgrp ffull"><div class="flbl">Item *</div>
+        <select class="finput" id="ret_item"></select>
+      </div>
+      <div class="fgrp"><div class="flbl">Quantity *</div><input type="number" class="finput" id="ret_qty" placeholder="0" step="0.01"></div>
+      <div class="fgrp"><div class="flbl">Unit</div><input class="finput" id="ret_unit" placeholder="kg / pcs" readonly></div>
+      <div class="fgrp"><div class="flbl">Date *</div><input type="date" class="finput" id="ret_date"></div>
+      <div class="fgrp"><div class="flbl">Reference (Order/Invoice)</div><input class="finput" id="ret_ref" placeholder="Order ID or Invoice No"></div>
+      <div class="fgrp ffull"><div class="flbl">Reason *</div><input class="finput" id="ret_reason" placeholder="Reason for return/damage"></div>
+      <div class="fgrp"><div class="flbl">Deduct from Stock?</div>
+        <select class="finput" id="ret_deduct">
+          <option value="yes">Yes — Adjust Inventory</option>
+          <option value="no">No — Record Only</option>
+        </select>
+      </div>
+      <div class="fgrp"><div class="flbl">Claim Amount (Rs)</div><input type="number" class="finput" id="ret_claim" placeholder="0 if none"></div>
+      <div class="fgrp ffull"><div class="flbl">Notes</div><input class="finput" id="ret_notes" placeholder="Additional details"></div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('returnModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveReturn()">Save Return</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importModal">
+  <div class="modal modal-sm">
+    <button class="mclose btn" onclick="close_('importModal')">✕</button>
+    <div class="mtitle syne">Import Inventory</div>
+    <div style="background:#1e2229;border-radius:10px;padding:13px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#f0a500;font-weight:bold;margin-bottom:6px;">CSV Format Required</div>
+      <div style="font-size:12px;color:#7a8099;">Your CSV must have these columns (first row = headers):</div>
+      <div style="font-size:11px;color:#3ecf8e;margin-top:6px;font-family:monospace;">name, category, location, qty, unit, reorder, cost, batch, expiry, supplier</div>
+      <button class="btn btn-sm btn-blue" onclick="downloadCSVTemplate()" style="margin-top:10px;">⬇ Download Template</button>
+    </div>
+    <div style="border:2px dashed #2a2f3a;border-radius:10px;padding:20px;text-align:center;position:relative;margin-bottom:12px;">
+      <input type="file" id="importFile" accept=".csv" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="previewImport(this)">
+      <div style="font-size:32px;margin-bottom:6px;">📄</div>
+      <div style="font-size:13px;color:#7a8099;">Tap to select CSV file</div>
+    </div>
+    <div id="importPreview" style="display:none;"></div>
+    <div class="factions">
+      <button class="btn" onclick="close_('importModal')">Cancel</button>
+      <button class="btn btn-gold" id="importBtn" onclick="doImport()" style="display:none;">⬆ Import Items</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="cfModal">
+  <div class="modal modal-confirm">
+    <div style="font-size:32px;margin-bottom:10px;" id="cfIco">⚠️</div>
+    <div style="font-weight:bold;font-size:15px;margin-bottom:8px;" id="cfTitle"></div>
+    <div style="font-size:13px;color:#7a8099;margin-bottom:18px;" id="cfMsg"></div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="btn" onclick="close_('cfModal')">Cancel</button>
+      <button class="btn btn-red" id="cfOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ FIREBASE + JS ════════════════ -->
+<script type="module">
+// ── FIREBASE CONFIG (same as index.html — paste your config here) ──
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot,
+  query, orderBy, serverTimestamp, getDocs }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUmib9rrK1uNNbycMy57DvEIKoqN_1Jd4",
+  authDomain: "i-dream-of-cake.firebaseapp.com",
+  projectId: "i-dream-of-cake",
+  storageBucket: "i-dream-of-cake.firebasestorage.app",
+  messagingSenderId: "1089704664769",
+  appId: "1:1089704664769:web:b295c2fa3b1fa097f6fe40"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let stockItems = [];
+let grns = [];
+let returns = [];
+let importRows = [];
+let currentReturnTab = 'sales';
+let currentStockTab = 'all';
+
+// ── HELPERS ──
+const toDay = () => new Date().toISOString().slice(0,10);
+const uid = () => currentUser.uid;
+const col = (c) => collection(db, 'users', uid(), c);
+const id14 = (pfx) => pfx + Date.now() + Math.floor(Math.random()*9999);
+
+window.showToast = function(msg, dur=2800){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+};
+window.open_ = (id) => document.getElementById(id).classList.add('show');
+window.close_ = (id) => document.getElementById(id).classList.remove('show');
+window.showConfirm = function(title, msg, cb, ico='⚠️'){
+  document.getElementById('cfTitle').textContent=title;
+  document.getElementById('cfMsg').textContent=msg;
+  document.getElementById('cfIco').textContent=ico;
+  document.getElementById('cfOk').onclick=()=>{close_('cfModal');cb();};
+  open_('cfModal');
+};
+
+function fmtD(d){ if(!d)return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+
+function daysUntilExpiry(dateStr){
+  if(!dateStr) return null;
+  const diff = new Date(dateStr) - new Date(toDay());
+  return Math.ceil(diff / 86400000);
+}
+
+// ── AUTH ──
+onAuthStateChanged(auth, user => {
+  if(user){
+    currentUser = user;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    document.getElementById('appFooter').style.display='flex';
+    document.getElementById('userLabel').textContent = user.email;
+    setSyncOk();
+    startSync();
+  } else {
+    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('appScreen').style.display='none';
+    document.getElementById('appFooter').style.display='none';
+  }
+});
+
+window.doLogin = async function(){
+  const e=document.getElementById('authEmail').value.trim();
+  const p=document.getElementById('authPass').value;
+  const err=document.getElementById('authErr');
+  err.classList.remove('show');
+  try{
+    await signInWithEmailAndPassword(auth,e,p);
+  } catch(ex){
+    err.textContent='Login failed: '+ex.message;
+    err.classList.add('show');
+  }
+};
+
+function setSyncOk(){document.getElementById('syncDot').className='sync-dot sync-ok';document.getElementById('syncTxt').textContent='Synced';}
+function setSyncIng(){document.getElementById('syncDot').className='sync-dot sync-ing';document.getElementById('syncTxt').textContent='Syncing…';}
+
+// ── REALTIME SYNC ──
+function startSync(){
+  // Stock Items
+  onSnapshot(query(col('inventory'), orderBy('name')), snap => {
+    snap.docChanges().forEach(ch => {
+      const d={id:ch.doc.id,...ch.doc.data()};
+      if(ch.type==='added'||ch.type==='modified'){
+        const i=stockItems.findIndex(x=>x.id===d.id);
+        if(i>=0)stockItems[i]=d; else stockItems.push(d);
+      } else if(ch.type==='removed') stockItems=stockItems.filter(x=>x.id!==ch.doc.id);
+    });
+    stockItems.sort((a,b)=>a.name.localeCompare(b.name));
+    rebuildLocationLists();
+    renderStock();
+    renderReplen();
+    setSyncOk();
+  }, ()=>{ document.getElementById('syncDot').className='sync-dot sync-err'; document.getElementById('syncTxt').textContent='Offline'; });
+
+  // GRNs
+  onSnapshot(query(col('grns'), orderBy('date','desc')), snap => {
+    snap.docChanges().forEach(ch => {
+      const d={id:ch.doc.id,...ch.doc.data()};
+      if(ch.type==='added'||ch.type==='modified'){
+        const i=grns.findIndex(x=>x.id===d.id);
+        if(i>=0)grns[i]=d; else grns.unshift(d);
+      } else if(ch.type==='removed') grns=grns.filter(x=>x.id!==ch.doc.id);
+    });
+    grns.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    renderGRNs();
+  });
+
+  // Returns
+  onSnapshot(query(col('returns'), orderBy('date','desc')), snap => {
+    snap.docChanges().forEach(ch => {
+      const d={id:ch.doc.id,...ch.doc.data()};
+      if(ch.type==='added'||ch.type==='modified'){
+        const i=returns.findIndex(x=>x.id===d.id);
+        if(i>=0)returns[i]=d; else returns.unshift(d);
+      } else if(ch.type==='removed') returns=returns.filter(x=>x.id!==ch.doc.id);
+    });
+    returns.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    renderReturns();
+  });
+}
+
+// ── PAGE SWITCHING ──
+window.switchPage = function(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active');
+  document.getElementById('nav_'+p).classList.add('active');
+  if(p==='recon') loadRecon();
+  if(p==='replen') renderReplen();
+};
+
+// ── LOCATION LISTS ──
+function rebuildLocationLists(){
+  const locs=[...new Set(stockItems.map(x=>x.location).filter(Boolean))].sort();
+  ['stockLocation','reconLocation'].forEach(selId=>{
+    const sel=document.getElementById(selId);
+    if(!sel)return;
+    const v=sel.value;
+    sel.innerHTML='<option value="">All Locations</option>';
+    locs.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;sel.appendChild(o);});
+    sel.value=v;
+  });
+  ['locationList','locationList2'].forEach(dlId=>{
+    const dl=document.getElementById(dlId);
+    if(!dl)return;
+    dl.innerHTML='';
+    locs.forEach(l=>{const o=document.createElement('option');o.value=l;dl.appendChild(o);});
+  });
+  document.getElementById('stLocations').textContent=locs.length;
+}
+
+// ══════════════════════════════════════
+// STOCK PAGE
+// ══════════════════════════════════════
+window.filterStockTab = function(tab){
+  currentStockTab=tab;
+  document.querySelectorAll('.sec-tab[id^=stab_]').forEach(el=>el.classList.remove('active'));
+  document.getElementById('stab_'+tab).classList.add('active');
+  renderStock();
+};
+
+window.renderStock = function(){
+  const search=(document.getElementById('stockSearch').value||'').toLowerCase();
+  const locF=(document.getElementById('stockLocation').value||'');
+  const today=toDay();
+
+  let list=stockItems.filter(item=>{
+    if(locF && item.location!==locF) return false;
+    if(search && !JSON.stringify(item).toLowerCase().includes(search)) return false;
+    if(currentStockTab==='low') return (item.qty||0)<=(item.reorder||0) && item.reorder;
+    if(currentStockTab==='expiring'){const d=daysUntilExpiry(item.expiry);return d!==null && d<=7;}
+    if(currentStockTab==='damages') return item.status==='damaged'||item.status==='quarantine';
+    return true;
+  });
+
+  // Stats
+  document.getElementById('stTotalItems').textContent=stockItems.length;
+  const lowCount=stockItems.filter(i=>(i.qty||0)<=(i.reorder||0)&&i.reorder).length;
+  document.getElementById('stLowStock').textContent=lowCount;
+  const expCount=stockItems.filter(i=>{const d=daysUntilExpiry(i.expiry);return d!==null&&d<=7;}).length;
+  document.getElementById('stExpiring').textContent=expCount;
+
+  // Alerts
+  const alertEl=document.getElementById('stockAlerts');
+  let alertHTML='';
+  const lowItems=stockItems.filter(i=>(i.qty||0)<=(i.reorder||0)&&i.reorder);
+  const expItems=stockItems.filter(i=>{const d=daysUntilExpiry(i.expiry);return d!==null&&d<=3;});
+  if(expItems.length){
+    alertHTML+=`<div class="alert-banner alert-danger"><div class="alert-title">⏰ Expiring in 3 days or less</div>
+    ${expItems.map(i=>`<div class="alert-row">🔴 <b>${i.name}</b> — expires ${fmtD(i.expiry)} (${i.location||'No location'})</div>`).join('')}</div>`;
+  }
+  if(lowItems.length){
+    alertHTML+=`<div class="alert-banner alert-warn"><div class="alert-title">⚠ Low Stock Alert</div>
+    ${lowItems.map(i=>`<div class="alert-row">🟡 <b>${i.name}</b> — ${i.qty||0} ${i.unit||''} left (reorder at ${i.reorder})</div>`).join('')}</div>`;
+  }
+  alertEl.innerHTML=alertHTML;
+
+  // Table
+  const tbody=document.getElementById('stockBody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="empty-ico">📦</div><p>No items found.</p></div></td></tr>`;return;}
+
+  tbody.innerHTML=list.map(item=>{
+    const expDays=daysUntilExpiry(item.expiry);
+    let expBadge='—';
+    if(item.expiry){
+      if(expDays<0) expBadge=`<span class="badge b-red">Expired</span>`;
+      else if(expDays<=3) expBadge=`<span class="badge b-red">${expDays}d</span>`;
+      else if(expDays<=7) expBadge=`<span class="badge b-orange">${expDays}d</span>`;
+      else expBadge=`<span style="font-size:12px;color:#7a8099;">${fmtD(item.expiry)}</span>`;
+    }
+    const isLow=(item.qty||0)<=(item.reorder||0)&&item.reorder;
+    const statusMap={ok:'b-green',low:'b-gold',damaged:'b-red',quarantine:'b-purple'};
+    const statusBadge=`<span class="badge ${statusMap[item.status]||'b-gray'}">${item.status||'ok'}</span>`;
+
+    return `<tr>
+      <td><div style="font-weight:600;">${item.name}</div><div style="font-size:11px;color:#7a8099;">${item.sku||''}</div></td>
+      <td><span style="font-size:12px;color:#7a8099;">${item.category||'—'}</span></td>
+      <td><span style="font-size:12px;">${item.location||'—'}</span></td>
+      <td><span style="font-size:12px;color:#7a8099;">${item.batch||'—'}</span></td>
+      <td style="font-weight:bold;color:${isLow?'#f06565':'#e8eaf0'};">${(item.qty||0).toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+      <td style="font-size:12px;color:#7a8099;">${item.unit||''}</td>
+      <td>${expBadge}</td>
+      <td>${statusBadge}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="openItemModal('${item.id}')">✎</button>
+        <button class="btn btn-sm btn-red" onclick="deleteItem('${item.id}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+};
+
+window.openItemModal = function(id=null){
+  document.getElementById('itemModalTitle').textContent=id?'Edit Stock Item':'Add Stock Item';
+  if(id){
+    const item=stockItems.find(x=>x.id===id);
+    if(!item)return;
+    ['id','name','sku','cat','location','qty','unit','reorder','cost','batch','expiry','supplier','status','notes'].forEach(f=>{
+      const el=document.getElementById('im_'+f);
+      if(el) el.value=item[f]||'';
+    });
+  } else {
+    document.getElementById('im_id').value='';
+    ['name','sku','location','qty','reorder','cost','batch','expiry','supplier','notes'].forEach(f=>{ const el=document.getElementById('im_'+f); if(el)el.value=''; });
+    document.getElementById('im_cat').value='Ingredients';
+    document.getElementById('im_unit').value='kg';
+    document.getElementById('im_status').value='ok';
+  }
+  open_('itemModal');
+};
+
+window.saveItem = async function(){
+  const name=document.getElementById('im_name').value.trim();
+  const qty=parseFloat(document.getElementById('im_qty').value)||0;
+  if(!name){showToast('Item name is required.');return;}
+  setSyncIng();
+  const data={
+    name, qty,
+    sku:document.getElementById('im_sku').value.trim()||'SKU-'+Date.now().toString().slice(-6),
+    category:document.getElementById('im_cat').value,
+    location:document.getElementById('im_location').value.trim(),
+    unit:document.getElementById('im_unit').value,
+    reorder:parseFloat(document.getElementById('im_reorder').value)||0,
+    cost:parseFloat(document.getElementById('im_cost').value)||0,
+    batch:document.getElementById('im_batch').value.trim(),
+    expiry:document.getElementById('im_expiry').value,
+    supplier:document.getElementById('im_supplier').value.trim(),
+    status:document.getElementById('im_status').value,
+    notes:document.getElementById('im_notes').value.trim(),
+    updatedAt:serverTimestamp()
+  };
+  const editId=document.getElementById('im_id').value;
+  try{
+    if(editId){ await updateDoc(doc(db,'users',uid(),'inventory',editId),data); showToast('Item updated!'); }
+    else { const id=id14('inv'); data.id=id; data.createdAt=serverTimestamp(); await setDoc(doc(db,'users',uid(),'inventory',id),data); showToast('Item added!'); }
+    close_('itemModal');
+  } catch(e){showToast('Error: '+e.message);}
+};
+
+window.deleteItem = function(id){
+  showConfirm('Delete Item','This will remove the item from inventory. Continue?',async()=>{
+    await deleteDoc(doc(db,'users',uid(),'inventory',id));
+    showToast('Deleted.');
+  },'🗑️');
+};
+
+// ══════════════════════════════════════
+// RECEIVE / GRN PAGE
+// ══════════════════════════════════════
+let grnItemCount=0;
+
+window.openGRNModal = function(id=null){
+  grnItemCount=0;
+  document.getElementById('grn_id').value='';
+  document.getElementById('grn_invoice').value='';
+  document.getElementById('grn_waybill').value='';
+  document.getElementById('grn_supplier').value='';
+  document.getElementById('grn_date').value=toDay();
+  document.getElementById('grn_location').value='';
+  document.getElementById('grn_invvalue').value='';
+  document.getElementById('grn_notes').value='';
+  document.getElementById('grnItems').innerHTML='';
+  addGRNItem();
+  open_('grnModal');
+};
+
+window.addGRNItem = function(){
+  grnItemCount++;
+  const div=document.createElement('div');
+  div.className='grn-item';
+  div.id='grnItem_'+grnItemCount;
+  div.innerHTML=`
+    <div class="grn-item-head">
+      <span style="font-size:12px;font-weight:bold;color:#f0a500;">Line ${grnItemCount}</span>
+      <button class="btn btn-sm btn-red" onclick="removeGRNItem(${grnItemCount})">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="fgrp" style="grid-column:1/-1;"><div class="flbl">Item Name *</div>
+        <input class="finput" id="gi_name_${grnItemCount}" placeholder="Item name" list="invItemList">
+        <datalist id="invItemList">${stockItems.map(i=>`<option value="${i.name}">`).join('')}</datalist>
+      </div>
+      <div class="fgrp"><div class="flbl">Invoiced Qty</div><input type="number" class="finput" id="gi_invqty_${grnItemCount}" placeholder="0" step="0.01"></div>
+      <div class="fgrp"><div class="flbl">Received Qty</div><input type="number" class="finput" id="gi_recqty_${grnItemCount}" placeholder="0" step="0.01" oninput="checkGRNMismatch(${grnItemCount})"></div>
+      <div class="fgrp"><div class="flbl">Unit</div>
+        <select class="finput" id="gi_unit_${grnItemCount}"><option>kg</option><option>g</option><option>L</option><option>ml</option><option>pcs</option><option>boxes</option><option>packets</option></select>
+      </div>
+      <div class="fgrp"><div class="flbl">Batch No.</div><input class="finput" id="gi_batch_${grnItemCount}" placeholder="Optional"></div>
+      <div class="fgrp" style="grid-column:1/-1;"><div class="flbl">Expiry Date</div><input type="date" class="finput" id="gi_expiry_${grnItemCount}"></div>
+    </div>
+    <div id="gi_mismatch_${grnItemCount}"></div>
+  `;
+  document.getElementById('grnItems').appendChild(div);
+};
+
+window.removeGRNItem = function(n){
+  const el=document.getElementById('grnItem_'+n);
+  if(el) el.remove();
+};
+
+window.checkGRNMismatch = function(n){
+  const inv=parseFloat(document.getElementById('gi_invqty_'+n).value)||0;
+  const rec=parseFloat(document.getElementById('gi_recqty_'+n).value)||0;
+  const el=document.getElementById('gi_mismatch_'+n);
+  if(inv&&rec&&inv!==rec){
+    const diff=rec-inv;
+    el.innerHTML=`<div class="grn-mismatch">⚠ Mismatch: Invoiced ${inv}, Received ${rec} (${diff>0?'+':''}${diff.toFixed(2)} ${document.getElementById('gi_unit_'+n).value})</div>`;
+  } else el.innerHTML='';
+};
+
+window.renderGRNs = function(){
+  const filter=document.getElementById('grnFilter').value;
+  let list=grns;
+  if(filter==='matched') list=grns.filter(g=>g.status==='matched');
+  else if(filter==='mismatch') list=grns.filter(g=>g.status==='mismatch');
+  else if(filter==='pending') list=grns.filter(g=>g.status==='pending');
+
+  const el=document.getElementById('grnList');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-ico">🚚</div><p>No goods receipts yet. Tap <b>+ Receive Goods</b> to start.</p></div>';return;}
+
+  el.innerHTML=list.map(g=>{
+    const hasMismatch=g.items&&g.items.some(i=>parseFloat(i.invqty)!==parseFloat(i.recqty));
+    const statusClass=g.status==='matched'?'b-green':g.status==='mismatch'?'b-red':'b-gold';
+    const statusLabel=g.status==='matched'?'✅ Matched':g.status==='mismatch'?'⚠ Mismatch':'⏳ Pending';
+    return `<div class="card-box" style="margin-bottom:12px;">
+      <div class="card-box-title" style="flex-wrap:wrap;gap:6px;">
+        <div>
+          <div style="font-weight:bold;font-size:13px;">🧾 ${g.invoice||'No Invoice'} &nbsp;<span style="font-weight:400;color:#7a8099;font-size:12px;">${g.supplier||''}</span></div>
+          <div style="font-size:11px;color:#7a8099;margin-top:2px;">📅 ${fmtD(g.date)} &nbsp;|&nbsp; Waybill: ${g.waybill||'—'} &nbsp;|&nbsp; 📍 ${g.location||'—'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="badge ${statusClass}">${statusLabel}</span>
+          ${g.invvalue?`<span style="font-size:12px;color:#f0a500;">Rs ${Number(g.invvalue).toLocaleString('en-IN')}</span>`:''}
+          <button class="btn btn-sm btn-red" onclick="deleteGRN('${g.id}')">✕</button>
+        </div>
+      </div>
+      ${g.items?`<div style="padding:10px 14px;">
+        <table style="min-width:300px;">
+          <thead><tr><th>Item</th><th>Invoiced</th><th>Received</th><th>Diff</th></tr></thead>
+          <tbody>${g.items.map(i=>{
+            const diff=parseFloat(i.recqty||0)-parseFloat(i.invqty||0);
+            const mm=parseFloat(i.invqty)!==parseFloat(i.recqty);
+            return `<tr class="${mm?'recon-row-mismatch':'recon-row-match'}">
+              <td>${i.name}${i.batch?` <span style="font-size:11px;color:#7a8099;">(${i.batch})</span>`:''}</td>
+              <td>${i.invqty||0} ${i.unit||''}</td>
+              <td>${i.recqty||0} ${i.unit||''}</td>
+              <td style="font-weight:bold;color:${mm?(diff>0?'#3ecf8e':'#f06565'):'#7a8099'}">${mm?(diff>0?'+':'')+diff.toFixed(2):'✓'}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+        ${g.notes?`<div style="margin-top:8px;font-size:12px;color:#7a8099;">📝 ${g.notes}</div>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+};
+
+window.saveGRN = async function(){
+  const invoice=document.getElementById('grn_invoice').value.trim();
+  const date=document.getElementById('grn_date').value;
+  if(!invoice||!date){showToast('Invoice number and date are required.');return;}
+
+  // Collect items
+  const items=[];
+  document.querySelectorAll('[id^=grnItem_]').forEach(el=>{
+    const n=el.id.split('_')[1];
+    const name=(document.getElementById('gi_name_'+n)?.value||'').trim();
+    if(!name)return;
+    items.push({
+      name,
+      invqty:parseFloat(document.getElementById('gi_invqty_'+n)?.value)||0,
+      recqty:parseFloat(document.getElementById('gi_recqty_'+n)?.value)||0,
+      unit:document.getElementById('gi_unit_'+n)?.value||'',
+      batch:document.getElementById('gi_batch_'+n)?.value.trim()||'',
+      expiry:document.getElementById('gi_expiry_'+n)?.value||''
+    });
+  });
+
+  if(!items.length){showToast('Add at least one item line.');return;}
+
+  const hasMismatch=items.some(i=>i.invqty!==i.recqty);
+  const grnData={
+    invoice, date,
+    waybill:document.getElementById('grn_waybill').value.trim(),
+    supplier:document.getElementById('grn_supplier').value.trim(),
+    location:document.getElementById('grn_location').value.trim(),
+    invvalue:parseFloat(document.getElementById('grn_invvalue').value)||0,
+    notes:document.getElementById('grn_notes').value.trim(),
+    items, status:hasMismatch?'mismatch':'matched',
+    createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+  };
+  const id=id14('grn');
+  grnData.id=id;
+
+  try{
+    setSyncIng();
+    await setDoc(doc(db,'users',uid(),'grns',id),grnData);
+
+    // Update stock quantities
+    for(const item of items){
+      const existing=stockItems.find(s=>s.name.toLowerCase()===item.name.toLowerCase()&&(!grnData.location||s.location===grnData.location));
+      if(existing){
+        await updateDoc(doc(db,'users',uid(),'inventory',existing.id),{
+          qty:(existing.qty||0)+item.recqty,
+          batch:item.batch||existing.batch,
+          expiry:item.expiry||existing.expiry,
+          updatedAt:serverTimestamp()
+        });
+      } else {
+        // Create new stock entry
+        const newId=id14('inv');
+        await setDoc(doc(db,'users',uid(),'inventory',newId),{
+          id:newId, name:item.name, qty:item.recqty, unit:item.unit,
+          batch:item.batch, expiry:item.expiry, location:grnData.location,
+          supplier:grnData.supplier, status:'ok', reorder:0, cost:0,
+          createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+        });
+      }
+    }
+    showToast(hasMismatch?'GRN saved — mismatches flagged!':'GRN saved — stock updated!');
+    close_('grnModal');
+  } catch(e){showToast('Error: '+e.message);}
+};
+
+window.deleteGRN = function(id){
+  showConfirm('Delete GRN','Delete this receipt record?',async()=>{
+    await deleteDoc(doc(db,'users',uid(),'grns',id));
+    showToast('GRN deleted.');
+  },'🗑️');
+};
+
+// ══════════════════════════════════════
+// RETURNS / DAMAGES PAGE
+// ══════════════════════════════════════
+window.filterReturnTab = function(tab){
+  currentReturnTab=tab;
+  document.querySelectorAll('.sec-tab[id^=rtab_]').forEach(el=>el.classList.remove('active'));
+  document.getElementById('rtab_'+tab).classList.add('active');
+  renderReturns();
+};
+
+window.renderReturns = function(){
+  const search=(document.getElementById('retSearch').value||'').toLowerCase();
+  const typeMap={sales:'sales_return',purchase:'purchase_return',damages:'damage,claim'};
+  const types=typeMap[currentReturnTab].split(',');
+
+  let list=returns.filter(r=>{
+    if(!types.includes(r.type))return false;
+    if(search && !JSON.stringify(r).toLowerCase().includes(search))return false;
+    return true;
+  });
+
+  const el=document.getElementById('returnsList');
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">↩️</div><p>No records yet. Tap <b>+ Add Return</b>.</p></div>';return;
+  }
+
+  const colorMap={sales_return:'b-blue',purchase_return:'b-purple',damage:'b-red',claim:'b-orange'};
+  const labelMap={sales_return:'Sales Return',purchase_return:'Purchase Return',damage:'Damage',claim:'Claim'};
+
+  el.innerHTML=list.map(r=>`
+    <div class="ret-card">
+      <div class="ret-head">
+        <div>
+          <span class="badge ${colorMap[r.type]||'b-gray'}">${labelMap[r.type]||r.type}</span>
+          ${r.deduct==='yes'?'<span class="badge b-red" style="margin-left:4px;">Stock Adjusted</span>':''}
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-sm btn-red" onclick="deleteReturn('${r.id}')">✕</button>
+        </div>
+      </div>
+      <div class="ret-name">${r.itemName||'—'} — ${r.qty||0} ${r.unit||''}</div>
+      <div class="ret-meta">📅 ${fmtD(r.date)} &nbsp;|&nbsp; Ref: ${r.ref||'—'} &nbsp;|&nbsp; Reason: ${r.reason||'—'}</div>
+      ${r.claim?`<div style="margin-top:5px;font-size:12px;color:#e05c3a;">💰 Claim: Rs ${Number(r.claim).toLocaleString('en-IN')}</div>`:''}
+      ${r.notes?`<div style="margin-top:4px;font-size:11px;color:#7a8099;">📝 ${r.notes}</div>`:''}
+    </div>`).join('');
+};
+
+window.openReturnModal = function(){
+  document.getElementById('ret_id').value='';
+  document.getElementById('ret_type').value='sales_return';
+  document.getElementById('ret_qty').value='';
+  document.getElementById('ret_date').value=toDay();
+  document.getElementById('ret_ref').value='';
+  document.getElementById('ret_reason').value='';
+  document.getElementById('ret_claim').value='';
+  document.getElementById('ret_notes').value='';
+  document.getElementById('ret_deduct').value='yes';
+
+  // Populate item select
+  const sel=document.getElementById('ret_item');
+  sel.innerHTML='<option value="">-- Select Item --</option>'+stockItems.map(i=>`<option value="${i.id}" data-unit="${i.unit}">${i.name} (${i.location||'No loc'})</option>`).join('');
+  sel.onchange=function(){
+    const opt=sel.options[sel.selectedIndex];
+    document.getElementById('ret_unit').value=opt.getAttribute('data-unit')||'';
+  };
+
+  open_('returnModal');
+};
+
+window.saveReturn = async function(){
+  const itemId=document.getElementById('ret_item').value;
+  const qty=parseFloat(document.getElementById('ret_qty').value)||0;
+  const date=document.getElementById('ret_date').value;
+  const reason=document.getElementById('ret_reason').value.trim();
+  if(!itemId||!qty||!date||!reason){showToast('Item, quantity, date and reason are required.');return;}
+
+  const item=stockItems.find(x=>x.id===itemId);
+  const deduct=document.getElementById('ret_deduct').value;
+
+  const data={
+    type:document.getElementById('ret_type').value,
+    itemId, itemName:item?item.name:'', qty, unit:item?item.unit:'',
+    date, ref:document.getElementById('ret_ref').value.trim(),
+    reason, deduct, claim:parseFloat(document.getElementById('ret_claim').value)||0,
+    notes:document.getElementById('ret_notes').value.trim(),
+    createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+  };
+  const id=id14('ret');
+  data.id=id;
+
+  try{
+    setSyncIng();
+    await setDoc(doc(db,'users',uid(),'returns',id),data);
+    if(deduct==='yes'&&item){
+      const newQty=Math.max(0,(item.qty||0)-qty);
+      await updateDoc(doc(db,'users',uid(),'inventory',item.id),{qty:newQty,updatedAt:serverTimestamp()});
+    }
+    showToast('Return recorded'+(deduct==='yes'?' — stock adjusted':'')+'!');
+    close_('returnModal');
+  } catch(e){showToast('Error: '+e.message);}
+};
+
+window.deleteReturn = function(id){
+  showConfirm('Delete Return','Delete this return record? Note: stock will not be re-adjusted.',async()=>{
+    await deleteDoc(doc(db,'users',uid(),'returns',id));
+    showToast('Deleted.');
+  },'🗑️');
+};
+
+// ══════════════════════════════════════
+// RECONCILIATION PAGE
+// ══════════════════════════════════════
+let reconData=[];
+
+window.loadRecon = function(){
+  const locF=document.getElementById('reconLocation').value;
+  reconData=stockItems.filter(i=>!locF||i.location===locF);
+  document.getElementById('reconDate').textContent='As of '+fmtD(toDay());
+
+  const tbody=document.getElementById('reconBody');
+  if(!reconData.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:#7a8099;">No items for this location.</td></tr>';return;}
+
+  tbody.innerHTML=reconData.map((item,idx)=>`
+    <tr>
+      <td><div style="font-weight:600;">${item.name}</div><div style="font-size:11px;color:#7a8099;">${item.sku||''}</div></td>
+      <td style="font-size:12px;">${item.location||'—'}</td>
+      <td style="font-weight:bold;color:#5b8dee;">${(item.qty||0).toLocaleString('en-IN',{maximumFractionDigits:2})} ${item.unit||''}</td>
+      <td><input type="number" style="background:#1e2229;border:1px solid #2a2f3a;border-radius:6px;padding:5px 8px;color:#e8eaf0;font-size:13px;width:90px;" id="recon_phys_${idx}" placeholder="Count" oninput="updateReconRow(${idx})"></td>
+      <td id="recon_diff_${idx}" style="font-weight:bold;">—</td>
+      <td id="recon_status_${idx}">—</td>
+    </tr>`).join('');
+  document.getElementById('reconSummary').innerHTML='';
+};
+
+window.updateReconRow = function(idx){
+  const item=reconData[idx];
+  const physEl=document.getElementById('recon_phys_'+idx);
+  const phys=parseFloat(physEl.value);
+  const diffEl=document.getElementById('recon_diff_'+idx);
+  const statusEl=document.getElementById('recon_status_'+idx);
+  if(isNaN(phys)){diffEl.textContent='—';statusEl.textContent='—';return;}
+  const diff=phys-(item.qty||0);
+  const row=physEl.closest('tr');
+  if(Math.abs(diff)<0.001){
+    diffEl.textContent='✓';diffEl.style.color='#3ecf8e';
+    statusEl.innerHTML='<span class="badge b-green">Match</span>';
+    row.className='recon-row-match';
+  } else {
+    diffEl.textContent=(diff>0?'+':'')+diff.toFixed(3)+' '+item.unit;
+    diffEl.style.color=diff>0?'#3ecf8e':'#f06565';
+    statusEl.innerHTML=`<span class="badge b-red">${diff>0?'Surplus':'Shortage'}</span>`;
+    row.className='recon-row-mismatch';
+  }
+};
+
+window.applyRecon = async function(){
+  const adjustments=[];
+  reconData.forEach((item,idx)=>{
+    const physEl=document.getElementById('recon_phys_'+idx);
+    const phys=parseFloat(physEl?.value);
+    if(!isNaN(phys)) adjustments.push({item,phys});
+  });
+  if(!adjustments.length){showToast('Enter at least one physical count first.');return;}
+  const mismatches=adjustments.filter(a=>Math.abs(a.phys-(a.item.qty||0))>0.001);
+  showConfirm('Apply Reconciliation',`${mismatches.length} item(s) will be adjusted. Continue?`,async()=>{
+    setSyncIng();
+    for(const {item,phys} of adjustments){
+      await updateDoc(doc(db,'users',uid(),'inventory',item.id),{qty:phys,updatedAt:serverTimestamp()});
+    }
+    showToast(`Reconciliation applied — ${adjustments.length} item(s) updated!`);
+    loadRecon();
+  },'📋');
+};
+
+// ══════════════════════════════════════
+// REPLENISHMENT PAGE
+// ══════════════════════════════════════
+window.renderReplen = function(){
+  const el=document.getElementById('replenList');
+  if(!stockItems.length){el.innerHTML='<div class="empty"><div class="empty-ico">🔔</div><p>No stock items yet.</p></div>';return;}
+
+  // Build replenishment suggestions
+  const suggestions=stockItems.filter(i=>i.reorder&&(i.qty||0)<=i.reorder).map(i=>{
+    const pct=i.reorder?(i.qty||0)/i.reorder*100:0;
+    const priority=pct===0?'high':pct<50?'high':'med';
+    const suggestQty=Math.max(i.reorder*3,10)-(i.qty||0);
+    return {...i,priority,suggestQty:Math.ceil(suggestQty)};
+  }).sort((a,b)=>{
+    const po={high:0,med:1,low:2};
+    return (po[a.priority]||2)-(po[b.priority]||2);
+  });
+
+  if(!suggestions.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">✅</div><p>All stock levels are healthy! No replenishment needed.</p></div>';return;
+  }
+
+  el.innerHTML=suggestions.map(s=>`
+    <div class="repl-card repl-prio-${s.priority}">
+      <div style="font-size:28px;">${s.priority==='high'?'🔴':'🟡'}</div>
+      <div class="repl-info">
+        <div class="repl-name">${s.name}</div>
+        <div class="repl-meta">
+          Stock: <b style="color:${s.priority==='high'?'#f06565':'#f0a500'}">${(s.qty||0).toLocaleString('en-IN',{maximumFractionDigits:2})} ${s.unit||''}</b>
+          &nbsp;|&nbsp; Reorder at: ${s.reorder} ${s.unit||''}
+          &nbsp;|&nbsp; 📍 ${s.location||'—'}
+          ${s.supplier?`<br>Supplier: ${s.supplier}`:''}
+        </div>
+        <div style="margin-top:5px;font-size:12px;color:#5b8dee;">
+          💡 Suggested order: <b>${s.suggestQty} ${s.unit||''}</b>
+          ${s.cost?` (≈ Rs ${(s.suggestQty*s.cost).toLocaleString('en-IN',{maximumFractionDigits:0})})`:''}
+        </div>
+      </div>
+      <button class="btn btn-sm btn-gold" onclick="openItemModal('${s.id}')">Update</button>
+    </div>`).join('');
+};
+
+// ══════════════════════════════════════
+// IMPORT / EXPORT
+// ══════════════════════════════════════
+window.openImportModal = () => {
+  document.getElementById('importPreview').style.display='none';
+  document.getElementById('importBtn').style.display='none';
+  document.getElementById('importFile').value='';
+  importRows=[];
+  open_('importModal');
+};
+
+window.downloadCSVTemplate = function(){
+  const csv='name,category,location,qty,unit,reorder,cost,batch,expiry,supplier\nButter 500g,Dairy,Fridge A,10,kg,2,120,,2024-12-31,Amul\n';
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='inventory_template.csv';a.click();
+};
+
+window.previewImport = function(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    if(lines.length<2){showToast('CSV must have headers and at least one row.');return;}
+    const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim().toLowerCase());
+    importRows=[];
+    for(let i=1;i<lines.length;i++){
+      const vals=lines[i].split(',').map(v=>v.replace(/"/g,'').trim());
+      const row={};
+      headers.forEach((h,idx)=>{row[h]=vals[idx]||'';});
+      if(row.name) importRows.push(row);
+    }
+    const prev=document.getElementById('importPreview');
+    prev.style.display='block';
+    prev.innerHTML=`<div style="background:#1e2229;border-radius:8px;padding:10px;font-size:12px;color:#3ecf8e;margin-bottom:10px;">✅ ${importRows.length} item(s) ready to import</div>
+    <div class="tscroll"><table style="min-width:300px;"><thead><tr><th>Name</th><th>Qty</th><th>Unit</th><th>Location</th></tr></thead>
+    <tbody>${importRows.slice(0,5).map(r=>`<tr><td>${r.name}</td><td>${r.qty||0}</td><td>${r.unit||''}</td><td>${r.location||''}</td></tr>`).join('')}
+    ${importRows.length>5?`<tr><td colspan="4" style="text-align:center;color:#7a8099;font-size:11px;">...and ${importRows.length-5} more</td></tr>`:''}</tbody></table></div>`;
+    document.getElementById('importBtn').style.display='block';
+  };
+  reader.readAsText(file);
+};
+
+window.doImport = async function(){
+  if(!importRows.length){showToast('No rows to import.');return;}
+  setSyncIng();
+  let count=0;
+  for(const row of importRows){
+    const id=id14('inv');
+    await setDoc(doc(db,'users',uid(),'inventory',id),{
+      id, name:row.name, category:row.category||'Other',
+      location:row.location||'', qty:parseFloat(row.qty)||0,
+      unit:row.unit||'', reorder:parseFloat(row.reorder)||0,
+      cost:parseFloat(row.cost)||0, batch:row.batch||'',
+      expiry:row.expiry||'', supplier:row.supplier||'',
+      status:'ok', sku:'SKU-'+Date.now().toString().slice(-6)+count,
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    });
+    count++;
+  }
+  showToast(`Imported ${count} items!`);
+  close_('importModal');
+};
+
+window.exportCSV = function(){
+  if(!stockItems.length){showToast('No stock items to export.');return;}
+  const rows=[['Name','SKU','Category','Location','Qty','Unit','Reorder Level','Cost/Unit','Batch','Expiry','Supplier','Status','Notes']];
+  stockItems.forEach(i=>rows.push([i.name,i.sku||'',i.category||'',i.location||'',i.qty||0,i.unit||'',i.reorder||0,i.cost||0,i.batch||'',i.expiry||'',i.supplier||'',i.status||'ok',i.notes||'']));
+  const csv=rows.map(r=>r.map(x=>`"${(x||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='inventory_'+toDay()+'.csv';a.click();
+  showToast('Exported!');
+};
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
