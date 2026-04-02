@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#f0a500">
+<title>Product Catalogue — I Dream of Cake</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0f14;color:#e8eaf0;font-family:Arial,sans-serif;font-size:14px;min-height:100vh;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOGIN */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0d0f14,#1a1040);}
+.login-box{background:#161920;border:1px solid #2a2f3a;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;text-align:center;}
+.login-logo .ico{font-size:48px;margin-bottom:8px;}
+.login-logo h1{font-size:22px;font-weight:900;color:#f0a500;}
+.login-logo p{font-size:12px;color:#7a8099;margin-top:4px;margin-bottom:20px;}
+.login-form{display:flex;flex-direction:column;gap:12px;}
+.login-form input{background:#1e2229;border:1px solid #2a2f3a;border-radius:9px;padding:12px 14px;color:#e8eaf0;font-size:14px;width:100%;}
+.login-form input:focus{outline:none;border-color:#f0a500;}
+.login-btn{background:#f0a500;color:#000;border:none;border-radius:9px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;}
+.login-err{background:rgba(240,101,101,.15);border:1px solid rgba(240,101,101,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#f06565;display:none;margin-top:6px;}
+.login-err.show{display:block;}
+
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.sync-ok{background:#3ecf8e;}.sync-err{background:#f06565;}.sync-ing{background:#f0a500;animation:pulse 1s infinite;}
+
+/* HEADER */
+.hdr{background:#161920;border-bottom:1px solid #2a2f3a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:50;}
+.hlogo{width:34px;height:34px;background:linear-gradient(135deg,#f0a500,#e05c3a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.htitle{font-size:15px;font-weight:bold;}.htitle span{color:#f0a500;}
+.hsubtitle{font-size:10px;color:#7a8099;}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* BUTTONS */
+button{cursor:pointer;border:none;font-family:Arial,sans-serif;font-size:13px;transition:opacity .15s;}
+button:active{opacity:.75;}
+.btn{background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;padding:7px 12px;border-radius:8px;font-weight:500;}
+.btn-gold{background:#f0a500;color:#000;font-weight:700;}
+.btn-red{background:rgba(240,101,101,.18);color:#f06565;border:1px solid rgba(240,101,101,.4);}
+.btn-green{background:rgba(62,207,142,.15);color:#3ecf8e;border:1px solid rgba(62,207,142,.3);}
+.btn-blue{background:rgba(91,141,238,.15);color:#5b8dee;border:1px solid rgba(91,141,238,.3);}
+.btn-orange{background:rgba(224,92,58,.15);color:#e05c3a;border:1px solid rgba(224,92,58,.3);}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#161920;border-top:1px solid #2a2f3a;display:flex;z-index:45;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;color:#7a8099;font-size:10px;gap:3px;transition:color .2s;}
+.bnav-item.active{color:#f0a500;}
+.bnav-ico{font-size:18px;line-height:1;}
+.page{display:none;padding:0 0 80px;}
+.page.active{display:block;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;padding:11px 14px;}
+.stat{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:12px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.s-gold::before{background:#f0a500;}.s-green::before{background:#3ecf8e;}.s-blue::before{background:#5b8dee;}.s-orange::before{background:#e05c3a;}
+.slbl{font-size:10px;color:#7a8099;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.sval{font-size:18px;font-weight:bold;}
+.s-gold .sval{color:#f0a500;}.s-green .sval{color:#3ecf8e;}.s-blue .sval{color:#5b8dee;}.s-orange .sval{color:#e05c3a;}
+
+/* TOOLBAR */
+.toolbar{padding:0 14px 9px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.toolbar input,.toolbar select{background:#161920;border:1px solid #2a2f3a;border-radius:8px;padding:8px 10px;color:#e8eaf0;font-size:13px;}
+.toolbar input{flex:1;min-width:120px;}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:#f0a500;}
+
+/* PRODUCT CARDS */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:0 14px;}
+.prod-card{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:13px;cursor:pointer;transition:border-color .15s;animation:fadeIn .2s;}
+.prod-card:hover{border-color:#2a3548;}
+.prod-card.low-stock{border-left:3px solid #f06565;}
+.prod-card.out-stock{border-left:3px solid #e05c3a;opacity:.7;}
+.prod-ico{font-size:28px;margin-bottom:6px;}
+.prod-name{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+.prod-price{font-size:14px;font-weight:900;color:#f0a500;}
+.prod-price-sub{font-size:10px;color:#5a6070;}
+.prod-stock{font-size:11px;margin-top:5px;padding:3px 7px;border-radius:6px;display:inline-block;}
+.stock-good{background:rgba(62,207,142,.12);color:#3ecf8e;}
+.stock-low{background:rgba(240,165,0,.12);color:#f0a500;}
+.stock-out{background:rgba(240,101,101,.12);color:#f06565;}
+.prod-scheme{font-size:10px;background:rgba(224,92,58,.15);color:#e05c3a;border:1px solid rgba(224,92,58,.3);border-radius:6px;padding:2px 6px;margin-top:4px;display:inline-block;}
+.prod-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+
+/* SCHEME / OFFER CARDS */
+.scheme-card{background:#161920;border:1px solid rgba(224,92,58,.3);border-radius:12px;padding:13px;margin-bottom:9px;animation:fadeIn .2s;}
+.sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.sc-name{font-size:14px;font-weight:700;color:#e05c3a;}
+.sc-type{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.sct-discount{background:rgba(240,165,0,.15);color:#f0a500;border:1px solid rgba(240,165,0,.3);}
+.sct-scheme{background:rgba(62,207,142,.15);color:#3ecf8e;border:1px solid rgba(62,207,142,.3);}
+.sct-offer{background:rgba(224,92,58,.15);color:#e05c3a;border:1px solid rgba(224,92,58,.3);}
+.sc-body{font-size:12px;color:#7a8099;line-height:1.5;}
+.sc-validity{font-size:11px;color:#404554;margin-top:4px;}
+.sc-active-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
+.badge-active{background:rgba(62,207,142,.15);color:#3ecf8e;}
+.badge-expired{background:rgba(240,101,101,.12);color:#f06565;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:12px;}
+.overlay.show{display:flex;}
+.modal{background:#161920;border:1px solid #2a2f3a;border-radius:16px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;padding:20px;position:relative;}
+.mclose{position:absolute;top:13px;right:13px;background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.mtitle{font-size:16px;font-weight:bold;margin-bottom:16px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ffull{grid-column:1/-1;}
+.flbl{font-size:11px;color:#7a8099;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:500;}
+.finput{background:#1e2229;border:1px solid #2a2f3a;border-radius:8px;padding:9px 10px;color:#e8eaf0;font-size:13px;width:100%;}
+.finput:focus{outline:none;border-color:#f0a500;}
+.fgrp{display:flex;flex-direction:column;}
+.factions{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+
+/* SYNC INFO BOX */
+.sync-info{background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.2);border-radius:10px;padding:11px 13px;margin:0 14px 10px;font-size:12px;color:#3ecf8e;display:flex;align-items:center;gap:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#1e2229;border:1px solid #3a3f4a;border-radius:10px;padding:10px 18px;font-size:13px;color:#e8eaf0;z-index:400;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;max-width:90vw;}
+.toast.show{opacity:1;}
+.empty{text-align:center;padding:40px 14px;color:#7a8099;}
+.empty-ico{font-size:38px;margin-bottom:10px;}
+.spinner{width:18px;height:18px;border:2px solid #2a2f3a;border-top-color:#f0a500;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+@media(max-width:480px){.fgrid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="ico">🛒</div>
+      <h1>Product Catalogue</h1>
+      <p>I Dream of Cake — Prices, Stock & Schemes</p>
+    </div>
+    <div class="login-form">
+      <input type="email" id="authEmail" placeholder="Email address" autocomplete="email">
+      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password">
+      <div id="authErr" class="login-err"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="appScreen" style="display:none;">
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="hlogo">🛒</div>
+    <div>
+      <div class="htitle">Product <span>Catalogue</span></div>
+      <div class="hsubtitle">Live-synced to Field App</div>
+    </div>
+  </div>
+  <div class="hbtns">
+    <span style="font-size:11px;color:#7a8099;display:flex;align-items:center;"><span class="sync-dot sync-ok" id="syncDot"></span><span id="syncTxt">Synced</span></span>
+    <button class="btn btn-gold" id="hdrAddBtn" onclick="openProductModal()">+ Product</button>
+  </div>
+</div>
+
+<!-- PAGE: PRODUCTS -->
+<div class="page active" id="pageProducts">
+  <div class="stats">
+    <div class="stat s-gold"><div class="slbl">Products</div><div class="sval" id="stProds">0</div></div>
+    <div class="stat s-green"><div class="slbl">In Stock</div><div class="sval" id="stInStock">0</div></div>
+    <div class="stat s-orange"><div class="slbl">Low Stock</div><div class="sval" id="stLow">0</div></div>
+    <div class="stat s-blue"><div class="slbl">Active Schemes</div><div class="sval" id="stSchemes">0</div></div>
+  </div>
+
+  <div class="sync-info">
+    🔄 All product data syncs live to the Companion Field App. Any change here is instantly visible to your salespersons.
+  </div>
+
+  <div class="toolbar">
+    <input id="prodSearch" placeholder="🔍 Search products..." oninput="renderProducts()">
+    <select id="catFilter" onchange="renderProducts()">
+      <option value="">All Categories</option>
+      <option>Eggless Cakes</option>
+      <option>Pastries</option>
+      <option>Cupcakes</option>
+      <option>Brownies</option>
+      <option>Cookies</option>
+      <option>Special Orders</option>
+    </select>
+  </div>
+
+  <div class="product-grid" id="productGrid">
+    <div class="empty" style="grid-column:1/-1;"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- PAGE: SCHEMES -->
+<div class="page" id="pageSchemes">
+  <div style="padding:11px 14px 6px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:15px;font-weight:700;">🎉 Schemes & Offers</div>
+    <button class="btn btn-orange btn-sm" onclick="openSchemeModal()">+ Add Scheme</button>
+  </div>
+  <div style="padding:0 14px 10px;font-size:12px;color:#7a8099;">
+    Active schemes are shown in companion app catalogue and auto-applied during order creation.
+  </div>
+  <div style="padding:0 14px;" id="schemesList">
+    <div class="empty"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- PAGE: PRICE TIERS -->
+<div class="page" id="pagePriceTiers">
+  <div style="padding:11px 14px 6px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:15px;font-weight:700;">💰 Price Tiers</div>
+    <button class="btn btn-gold btn-sm" onclick="savePriceTiers()">💾 Save & Sync</button>
+  </div>
+  <div style="padding:0 14px 10px;font-size:12px;color:#7a8099;">
+    Set price per kg for each tier. These appear in companion catalogue and order form.
+  </div>
+  <div style="padding:0 14px;" id="priceTierList"></div>
+  <div style="padding:0 14px;"><button class="btn btn-sm btn-green" onclick="addPriceTierRow()">+ Add Tier</button></div>
+</div>
+
+</div><!-- end appScreen -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bnav-item active" id="bnav_Products" onclick="showPage('Products')"><div class="bnav-ico">🎂</div>Products</div>
+  <div class="bnav-item" id="bnav_Schemes" onclick="showPage('Schemes')"><div class="bnav-ico">🎉</div>Schemes</div>
+  <div class="bnav-item" id="bnav_PriceTiers" onclick="showPage('PriceTiers')"><div class="bnav-ico">💰</div>Pricing</div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="overlay" id="productModal">
+  <div class="modal">
+    <button class="mclose" onclick="close_('productModal')">✕</button>
+    <div class="mtitle" id="prodModalTitle">Add Product</div>
+    <input type="hidden" id="prod_id">
+    <div class="fgrid">
+      <div class="fgrp ffull">
+        <div class="flbl">Product Name *</div>
+        <input class="finput" id="prod_name" placeholder="e.g. Chocolate Truffle Cake">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Category</div>
+        <select class="finput" id="prod_cat">
+          <option>Eggless Cakes</option>
+          <option>Pastries</option>
+          <option>Cupcakes</option>
+          <option>Brownies</option>
+          <option>Cookies</option>
+          <option>Special Orders</option>
+        </select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">SKU / Code</div>
+        <input class="finput" id="prod_sku" placeholder="Auto if blank">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Base Price / kg (₹) *</div>
+        <input class="finput" id="prod_price" type="number" placeholder="e.g. 900">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Min Weight (kg)</div>
+        <input class="finput" id="prod_minwt" type="number" step="0.5" placeholder="0.5">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Available Stock (units/kg)</div>
+        <input class="finput" id="prod_stock" type="number" step="0.5" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Low Stock Alert at</div>
+        <input class="finput" id="prod_reorder" type="number" placeholder="e.g. 5">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Unit</div>
+        <select class="finput" id="prod_unit">
+          <option value="kg">Per kg</option>
+          <option value="piece">Per piece</option>
+          <option value="dozen">Per dozen</option>
+          <option value="box">Per box</option>
+        </select>
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Description</div>
+        <input class="finput" id="prod_desc" placeholder="Short description shown in catalogue...">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Retailer Discount %</div>
+        <input class="finput" id="prod_retDisc" type="number" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Wholesale Discount %</div>
+        <input class="finput" id="prod_wsDisc" type="number" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Status</div>
+        <select class="finput" id="prod_status">
+          <option value="active">Active — Visible in catalogue</option>
+          <option value="hidden">Hidden — Not in catalogue</option>
+          <option value="out">Out of Stock</option>
+        </select>
+      </div>
+      <div class="fgrp" style="align-items:center;justify-content:center;padding-top:20px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="prod_featured" style="width:16px;height:16px;accent-color:#f0a500;">
+          Featured / Best Seller
+        </label>
+      </div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('productModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveProduct()">💾 Save & Sync to Field App</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEME MODAL -->
+<div class="overlay" id="schemeModal">
+  <div class="modal" style="max-width:440px;">
+    <button class="mclose" onclick="close_('schemeModal')">✕</button>
+    <div class="mtitle" id="schemeModalTitle">Add Scheme / Offer</div>
+    <input type="hidden" id="sch_id">
+    <div class="fgrid">
+      <div class="fgrp ffull">
+        <div class="flbl">Scheme Name *</div>
+        <input class="finput" id="sch_name" placeholder="e.g. Diwali Special, Bulk Discount">
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Type</div>
+        <select class="finput" id="sch_type">
+          <option value="discount">Percentage Discount</option>
+          <option value="scheme">Buy X Get Y</option>
+          <option value="offer">Special Offer / Flat Price</option>
+          <option value="seasonal">Seasonal Offer</option>
+        </select>
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Description (shown to salesperson)</div>
+        <input class="finput" id="sch_desc" placeholder="e.g. 10% off on orders above 2kg">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Discount / Value</div>
+        <input class="finput" id="sch_value" type="number" placeholder="e.g. 10 for 10%">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Applies To</div>
+        <select class="finput" id="sch_applies">
+          <option value="all">All Parties</option>
+          <option value="retail">Retailers Only</option>
+          <option value="wholesale">Wholesalers Only</option>
+          <option value="customer">Customers Only</option>
+        </select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Valid From</div>
+        <input class="finput" id="sch_from" type="date">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Valid Until</div>
+        <input class="finput" id="sch_to" type="date">
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Applicable Products (leave blank for all)</div>
+        <input class="finput" id="sch_products" placeholder="e.g. Chocolate Truffle, Red Velvet">
+      </div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('schemeModal')">Cancel</button>
+      <button class="btn btn-orange" onclick="saveScheme()">🎉 Save & Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, collection, setDoc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, serverTimestamp, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUmib9rrK1uNNbycMy57DvEIKoqN_1Jd4",
+  authDomain: "i-dream-of-cake.firebaseapp.com",
+  projectId: "i-dream-of-cake",
+  storageBucket: "i-dream-of-cake.firebasestorage.app",
+  messagingSenderId: "1089704664769",
+  appId: "1:1089704664769:web:b295c2fa3b1fa097f6fe40"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let products = [];
+let schemes = [];
+let priceTiers = [];
+
+const $ = id => document.getElementById(id);
+const toDay = () => new Date().toISOString().slice(0,10);
+const id14 = () => 'prod' + Date.now() + Math.floor(Math.random()*999);
+
+function showToast(msg, dur=2500) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+function open_(id){$(id).classList.add('show');}
+function close_(id){$(id).classList.remove('show');}
+window.close_=close_;
+
+function setSyncDot(s){
+  const d=$('syncDot'); d.className='sync-dot';
+  d.classList.add(s==='ok'?'sync-ok':s==='err'?'sync-err':'sync-ing');
+  $('syncTxt').textContent=s==='ok'?'Synced':s==='err'?'Error':'Syncing...';
+}
+
+window.doLogin = async function(){
+  const email=$('authEmail').value.trim(), pass=$('authPass').value;
+  const err=$('authErr'); err.classList.remove('show');
+  try { await signInWithEmailAndPassword(auth,email,pass); }
+  catch(e){ err.textContent=e.code==='auth/invalid-credential'?'Invalid email or password.':e.message; err.classList.add('show'); }
+};
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    currentUser=user;
+    $('loginScreen').style.display='none';
+    $('appScreen').style.display='block';
+    init();
+  } else {
+    $('loginScreen').style.display='flex';
+    $('appScreen').style.display='none';
+  }
+});
+
+function init(){
+  setSyncDot('ing');
+  listenProducts();
+  listenSchemes();
+  loadPriceTiers();
+  $('sch_from').value = toDay();
+}
+
+// ── PRODUCTS — stored in /sharedCatalogue — live synced to companion ──
+function listenProducts(){
+  const q = query(collection(db,'sharedCatalogue'), orderBy('name','asc'));
+  onSnapshot(q, snap=>{
+    products = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderProducts();
+    updateStats();
+    setSyncDot('ok');
+  }, ()=>setSyncDot('err'));
+}
+
+function updateStats(){
+  $('stProds').textContent = products.length;
+  $('stInStock').textContent = products.filter(p=>p.status==='active'&&(p.stock||0)>0).length;
+  $('stLow').textContent = products.filter(p=>(p.stock||0)<=(p.reorder||0)&&p.reorder>0).length;
+  $('stSchemes').textContent = schemes.filter(s=>{
+    if(!s.to) return true;
+    return s.to >= toDay();
+  }).length;
+}
+
+window.renderProducts = function(){
+  const search=($('prodSearch').value||'').toLowerCase();
+  const catF=$('catFilter').value;
+  let list=products;
+  if(catF) list=list.filter(p=>p.category===catF);
+  if(search) list=list.filter(p=>JSON.stringify(p).toLowerCase().includes(search));
+
+  const el=$('productGrid');
+  if(!list.length){
+    el.innerHTML='<div class="empty" style="grid-column:1/-1;"><div class="empty-ico">🎂</div><p>No products yet. Tap <b>+ Product</b> to add.</p></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(p=>{
+    const stockQty = Number(p.stock||0);
+    const isLow = stockQty <= (p.reorder||0) && p.reorder > 0;
+    const isOut = p.status==='out' || stockQty === 0;
+    const stockClass = isOut?'stock-out':isLow?'stock-low':'stock-good';
+    const stockLabel = isOut?'Out of Stock':isLow?`Low: ${stockQty} ${p.unit||'kg'}`:`${stockQty} ${p.unit||'kg'}`;
+    const cardClass = `prod-card${isOut?' out-stock':isLow?' low-stock':''}`;
+    const activeScheme = schemes.find(s=>s.status==='active'&&(s.applies==='all'||s.applies===p.type)&&(!s.products||s.products.includes(p.name)));
+    return `<div class="${cardClass}" onclick="openProductModal('${p.id}')">
+      <div class="prod-ico">${p.featured?'⭐':'🎂'}</div>
+      <div class="prod-name">${p.name}</div>
+      <div class="prod-price">₹${Number(p.price||0).toLocaleString('en-IN')}<span class="prod-price-sub">/${p.unit||'kg'}</span></div>
+      <div class="prod-stock ${stockClass}">${stockLabel}</div>
+      ${activeScheme?`<div class="prod-scheme">🎉 ${activeScheme.name}</div>`:''}
+      ${p.retDisc?`<div style="font-size:10px;color:#3ecf8e;margin-top:3px;">RT: -${p.retDisc}%</div>`:''}
+      ${p.wsDisc?`<div style="font-size:10px;color:#5b8dee;margin-top:2px;">WS: -${p.wsDisc}%</div>`:''}
+      <div class="prod-actions">
+        <button class="btn btn-sm btn-red" onclick="event.stopPropagation();deleteProduct('${p.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+// ── PRODUCT MODAL ──
+window.openProductModal = function(id=null){
+  $('prod_id').value=id||'';
+  $('prodModalTitle').textContent=id?'Edit Product':'Add Product';
+  if(id){
+    const p=products.find(x=>x.id===id); if(!p) return;
+    ['name','sku','price','minwt','stock','reorder','desc','retDisc','wsDisc'].forEach(f=>{
+      const el=$(('prod_'+f)); if(el) el.value=p[f]||'';
+    });
+    $('prod_cat').value=p.category||'Eggless Cakes';
+    $('prod_unit').value=p.unit||'kg';
+    $('prod_status').value=p.status||'active';
+    $('prod_featured').checked=p.featured||false;
+  } else {
+    ['name','sku','price','minwt','stock','reorder','desc','retDisc','wsDisc'].forEach(f=>{const el=$(('prod_'+f));if(el)el.value='';});
+    $('prod_cat').value='Eggless Cakes';
+    $('prod_unit').value='kg';
+    $('prod_status').value='active';
+    $('prod_featured').checked=false;
+  }
+  open_('productModal');
+};
+
+window.saveProduct = async function(){
+  const name=$('prod_name').value.trim();
+  const price=parseFloat($('prod_price').value)||0;
+  if(!name||!price){showToast('Product name and price are required.');return;}
+  setSyncDot('ing');
+  const data={
+    name, price,
+    sku:$('prod_sku').value.trim()||'SKU-'+Date.now().toString().slice(-6),
+    category:$('prod_cat').value,
+    unit:$('prod_unit').value,
+    minwt:parseFloat($('prod_minwt').value)||0.5,
+    stock:parseFloat($('prod_stock').value)||0,
+    reorder:parseFloat($('prod_reorder').value)||0,
+    desc:$('prod_desc').value.trim(),
+    retDisc:parseFloat($('prod_retDisc').value)||0,
+    wsDisc:parseFloat($('prod_wsDisc').value)||0,
+    status:$('prod_status').value,
+    featured:$('prod_featured').checked,
+    updatedAt:serverTimestamp(),
+    updatedBy:currentUser.email
+  };
+  const editId=$('prod_id').value;
+  try{
+    if(editId){
+      await updateDoc(doc(db,'sharedCatalogue',editId),data);
+      showToast('✅ Product updated & synced to Field App!');
+    } else {
+      const id=id14();
+      await setDoc(doc(db,'sharedCatalogue',id),{...data,id,createdAt:serverTimestamp()});
+      showToast('✅ Product added & visible in Field App!');
+    }
+    setSyncDot('ok');
+    close_('productModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+window.deleteProduct = async function(id){
+  if(!confirm('Delete this product from the catalogue?')) return;
+  try{
+    await deleteDoc(doc(db,'sharedCatalogue',id));
+    showToast('Product removed.');
+  } catch(e){showToast('Error: '+e.message);}
+};
+
+// ── SCHEMES ──
+function listenSchemes(){
+  const q = query(collection(db,'sharedSchemes'), orderBy('from','desc'));
+  onSnapshot(q, snap=>{
+    schemes = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderSchemes();
+  });
+}
+
+function renderSchemes(){
+  const el=$('schemesList');
+  if(!schemes.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">🎉</div><p>No schemes yet. Add your first offer!</p></div>';
+    return;
+  }
+  const today=toDay();
+  el.innerHTML=schemes.map(s=>{
+    const isActive=(!s.to||s.to>=today)&&(!s.from||s.from<=today);
+    const typeClass={discount:'sct-discount',scheme:'sct-scheme',offer:'sct-offer',seasonal:'sct-offer'}[s.type]||'sct-offer';
+    return `<div class="scheme-card">
+      <div class="sc-hdr">
+        <div>
+          <div class="sc-name">${s.name}</div>
+          <span class="sc-type ${typeClass}">${s.type?.toUpperCase()}</span>
+          <span class="sc-active-badge ${isActive?'badge-active':'badge-expired'}" style="margin-left:6px;">${isActive?'🟢 Active':'🔴 Expired'}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="openSchemeModal('${s.id}')">✎</button>
+          <button class="btn btn-sm btn-red" onclick="deleteScheme('${s.id}')">✕</button>
+        </div>
+      </div>
+      <div class="sc-body">${s.desc||'—'}</div>
+      ${s.value?`<div style="font-size:12px;color:#f0a500;margin-top:4px;">Value: ${s.value}${s.type==='discount'||s.type==='seasonal'?'%':''}</div>`:''}
+      <div class="sc-validity">
+        Applies to: <b>${{all:'All Parties',retail:'Retailers',wholesale:'Wholesalers',customer:'Customers'}[s.applies]||s.applies}</b>
+        ${s.from||s.to?` · Valid: ${s.from||'—'} to ${s.to||'no end date'}`:''}
+      </div>
+      ${s.products?`<div style="font-size:11px;color:#5a6070;margin-top:3px;">Products: ${s.products}</div>`:''}
+    </div>`;
+  }).join('');
+  updateStats();
+}
+
+window.openSchemeModal = function(id=null){
+  $('sch_id').value=id||'';
+  $('schemeModalTitle').textContent=id?'Edit Scheme':'Add Scheme / Offer';
+  if(id){
+    const s=schemes.find(x=>x.id===id); if(!s) return;
+    ['name','desc','value','products'].forEach(f=>{const el=$(('sch_'+f));if(el)el.value=s[f]||'';});
+    $('sch_type').value=s.type||'discount';
+    $('sch_applies').value=s.applies||'all';
+    $('sch_from').value=s.from||'';
+    $('sch_to').value=s.to||'';
+  } else {
+    ['name','desc','value','products'].forEach(f=>{const el=$(('sch_'+f));if(el)el.value='';});
+    $('sch_type').value='discount'; $('sch_applies').value='all';
+    $('sch_from').value=toDay(); $('sch_to').value='';
+  }
+  open_('schemeModal');
+};
+
+window.saveScheme = async function(){
+  const name=$('sch_name').value.trim();
+  if(!name){showToast('Scheme name is required.');return;}
+  const data={
+    name, type:$('sch_type').value,
+    desc:$('sch_desc').value.trim(),
+    value:parseFloat($('sch_value').value)||0,
+    applies:$('sch_applies').value,
+    from:$('sch_from').value,
+    to:$('sch_to').value,
+    products:$('sch_products').value.trim(),
+    status:'active',
+    updatedAt:serverTimestamp()
+  };
+  const editId=$('sch_id').value;
+  try{
+    setSyncDot('ing');
+    if(editId) await updateDoc(doc(db,'sharedSchemes',editId),data);
+    else { const id='sch'+Date.now(); await setDoc(doc(db,'sharedSchemes',id),{...data,id,createdAt:serverTimestamp()}); }
+    // Also update settings/offers for backward compat with companion
+    showToast('🎉 Scheme saved & visible in Field App!');
+    setSyncDot('ok');
+    close_('schemeModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+window.deleteScheme = async function(id){
+  if(!confirm('Delete this scheme?')) return;
+  await deleteDoc(doc(db,'sharedSchemes',id));
+  showToast('Scheme deleted.');
+};
+
+// ── PRICE TIERS ──
+async function loadPriceTiers(){
+  try{
+    const snap = await getDoc(doc(db,'settings','priceTiers'));
+    priceTiers = snap.exists() ? (snap.data().tiers||[]) : [
+      {ppk:700,label:'Basic',items:'Vanilla Sponge, Plain Cream'},
+      {ppk:900,label:'Standard',items:'Vanilla Truffle, Butterscotch, Pineapple'},
+      {ppk:1100,label:'Premium',items:'Chocolate Truffle, Red Velvet, Strawberry'},
+      {ppk:1400,label:'Deluxe',items:'Black Forest, White Forest, Mango'},
+      {ppk:1800,label:'Elite',items:'Premium Chocolate, Tiramisu, Hazelnut'},
+      {ppk:2200,label:'Designer',items:'Designer, Photo, Theme, Fondant Cakes'}
+    ];
+    renderPriceTiers();
+  } catch(e){ console.error(e); }
+}
+
+function renderPriceTiers(){
+  const el=$('priceTierList');
+  el.innerHTML=priceTiers.map((t,i)=>`
+    <div style="background:#161920;border:1px solid #2a2f3a;border-radius:10px;padding:12px;margin-bottom:8px;">
+      <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center;">
+        <div style="font-size:20px;">🎂</div>
+        <div>
+          <input class="finput" value="${t.label}" oninput="updateTier(${i},'label',this.value)" placeholder="Tier name" style="font-size:13px;font-weight:700;padding:6px 9px;">
+        </div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <span style="font-size:12px;color:#7a8099;">₹</span>
+          <input class="finput" type="number" value="${t.ppk}" oninput="updateTier(${i},'ppk',this.value)" placeholder="price/kg" style="font-size:13px;font-weight:700;color:#f0a500;padding:6px 9px;">
+          <span style="font-size:12px;color:#7a8099;">/kg</span>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <input class="finput" value="${t.items}" oninput="updateTier(${i},'items',this.value)" placeholder="Item names (comma separated)" style="font-size:12px;">
+      </div>
+      <div style="margin-top:6px;text-align:right;">
+        <button class="btn btn-sm btn-red" onclick="removeTier(${i})">✕ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+window.updateTier = function(i, key, val){ priceTiers[i][key] = key==='ppk'?parseFloat(val)||0:val; };
+window.removeTier = function(i){ priceTiers.splice(i,1); renderPriceTiers(); };
+window.addPriceTierRow = function(){ priceTiers.push({ppk:0,label:'New Tier',items:''}); renderPriceTiers(); };
+
+window.savePriceTiers = async function(){
+  try{
+    setSyncDot('ing');
+    // Save to settings/priceTiers — companion reads from here
+    await setDoc(doc(db,'settings','priceTiers'),{
+      tiers:priceTiers,
+      updatedAt:serverTimestamp()
+    });
+    showToast('✅ Price tiers saved & synced to Field App!');
+    setSyncDot('ok');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+// ── PAGE NAV ──
+window.showPage = function(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  $('page'+page)?.classList.add('active');
+  $('bnav_'+page)?.classList.add('active');
+  if(page==='Products') $('hdrAddBtn').style.display='';
+  else $('hdrAddBtn').style.display='none';
+};
+
+</script>
+</body>
+</html>

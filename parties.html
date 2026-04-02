@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Party Master — I Dream of Cake</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0f14;color:#e8eaf0;font-family:Arial,sans-serif;font-size:14px;min-height:100vh;}
+
+/* LOGIN */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0d0f14,#1a1040);}
+.login-box{background:#161920;border:1px solid #2a2f3a;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;text-align:center;}
+.login-logo .ico{font-size:48px;margin-bottom:8px;}
+.login-logo h1{font-size:22px;font-weight:900;color:#f0a500;}
+.login-logo p{font-size:12px;color:#7a8099;margin-top:4px;margin-bottom:20px;}
+.login-form{display:flex;flex-direction:column;gap:12px;}
+.login-form input{background:#1e2229;border:1px solid #2a2f3a;border-radius:9px;padding:12px 14px;color:#e8eaf0;font-size:14px;width:100%;}
+.login-form input:focus{outline:none;border-color:#f0a500;}
+.login-btn{background:#f0a500;color:#000;border:none;border-radius:9px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;}
+.login-err{background:rgba(240,101,101,.15);border:1px solid rgba(240,101,101,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#f06565;display:none;margin-top:6px;}
+.login-err.show{display:block;}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HEADER */
+.hdr{background:#161920;border-bottom:1px solid #2a2f3a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:50;}
+.hlogo{width:34px;height:34px;background:linear-gradient(135deg,#f0a500,#e05c3a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.htitle{font-size:15px;font-weight:bold;}.htitle span{color:#f0a500;}
+.hsubtitle{font-size:10px;color:#7a8099;}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.sync-ok{background:#3ecf8e;}.sync-err{background:#f06565;}.sync-ing{background:#f0a500;animation:pulse 1s infinite;}
+
+/* BUTTONS */
+button{cursor:pointer;border:none;font-family:Arial,sans-serif;font-size:13px;transition:opacity .15s;}
+button:active{opacity:.75;}
+.btn{background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;padding:7px 12px;border-radius:8px;font-weight:500;}
+.btn-gold{background:#f0a500;color:#000;font-weight:700;}
+.btn-red{background:rgba(240,101,101,.18);color:#f06565;border:1px solid rgba(240,101,101,.4);}
+.btn-green{background:rgba(62,207,142,.15);color:#3ecf8e;border:1px solid rgba(62,207,142,.3);}
+.btn-blue{background:rgba(91,141,238,.15);color:#5b8dee;border:1px solid rgba(91,141,238,.3);}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#161920;border-top:1px solid #2a2f3a;display:flex;z-index:45;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;color:#7a8099;font-size:10px;gap:3px;transition:color .2s;}
+.bnav-item.active{color:#f0a500;}
+.bnav-ico{font-size:18px;line-height:1;}
+.page{display:none;padding:0 0 80px;}
+.page.active{display:block;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;padding:11px 14px;}
+.stat{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:12px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.s-gold::before{background:#f0a500;}.s-blue::before{background:#5b8dee;}.s-green::before{background:#3ecf8e;}.s-red::before{background:#f06565;}.s-purple::before{background:#a78bfa;}
+.slbl{font-size:10px;color:#7a8099;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.sval{font-size:18px;font-weight:bold;}
+.s-gold .sval{color:#f0a500;}.s-blue .sval{color:#5b8dee;}.s-green .sval{color:#3ecf8e;}.s-red .sval{color:#f06565;}.s-purple .sval{color:#a78bfa;}
+
+/* TOOLBAR */
+.toolbar{padding:0 14px 9px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.toolbar input,.toolbar select{background:#161920;border:1px solid #2a2f3a;border-radius:8px;padding:8px 10px;color:#e8eaf0;font-size:13px;}
+.toolbar input{flex:1;min-width:140px;}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:#f0a500;}
+
+/* PARTY TABS */
+.type-tabs{display:flex;gap:6px;padding:10px 14px 0;flex-wrap:wrap;}
+.type-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #2a2f3a;color:#7a8099;background:#1e2229;transition:all .15s;}
+.type-tab.active.t-all{background:rgba(240,165,0,.15);color:#f0a500;border-color:rgba(240,165,0,.4);}
+.type-tab.active.t-retail{background:rgba(62,207,142,.15);color:#3ecf8e;border-color:rgba(62,207,142,.3);}
+.type-tab.active.t-wholesale{background:rgba(91,141,238,.15);color:#5b8dee;border-color:rgba(91,141,238,.3);}
+.type-tab.active.t-customer{background:rgba(167,139,250,.15);color:#a78bfa;border-color:rgba(167,139,250,.3);}
+
+/* PARTY CARDS */
+.party-list{padding:0 14px;}
+.party-card{background:#161920;border:1px solid #2a2f3a;border-radius:12px;padding:13px;margin-bottom:9px;animation:fadeIn .2s ease;}
+.party-card:hover{border-color:#2a3548;}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.pc-name{font-size:14px;font-weight:700;}
+.pc-sub{font-size:11px;color:#7a8099;margin-top:2px;}
+.pc-type{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.pt-retail{background:rgba(62,207,142,.15);color:#3ecf8e;border:1px solid rgba(62,207,142,.3);}
+.pt-wholesale{background:rgba(91,141,238,.15);color:#5b8dee;border:1px solid rgba(91,141,238,.3);}
+.pt-customer{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3);}
+.pc-info{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:#7a8099;margin-bottom:8px;}
+.pc-ledger{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.pc-amt{background:#1e2229;border-radius:7px;padding:5px 9px;font-size:12px;min-width:70px;}
+.pc-amt-lbl{font-size:10px;color:#5a6070;}
+.pc-amt-val{font-weight:700;margin-top:1px;}
+.pc-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:12px;}
+.overlay.show{display:flex;}
+.modal{background:#161920;border:1px solid #2a2f3a;border-radius:16px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;padding:20px;position:relative;}
+.mclose{position:absolute;top:13px;right:13px;background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.mtitle{font-size:16px;font-weight:bold;margin-bottom:16px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ffull{grid-column:1/-1;}
+.flbl{font-size:11px;color:#7a8099;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:500;}
+.finput{background:#1e2229;border:1px solid #2a2f3a;border-radius:8px;padding:9px 10px;color:#e8eaf0;font-size:13px;width:100%;}
+.finput:focus{outline:none;border-color:#f0a500;}
+.factions{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+.fgrp{display:flex;flex-direction:column;}
+
+/* LEDGER */
+.ledger-hdr{display:flex;justify-content:space-between;align-items:center;padding:0 14px 8px;}
+.ledger-entry{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #1a1f28;}
+.le-type{font-size:12px;font-weight:700;}
+.le-desc{font-size:11px;color:#5a6070;margin-top:1px;}
+.le-date{font-size:10px;color:#404554;margin-top:1px;}
+.le-amt{font-size:14px;font-weight:700;}
+.le-credit{color:#3ecf8e;}.le-debit{color:#f06565;}.le-neutral{color:#f0a500;}
+
+/* IMPORT */
+.import-box{background:#1e2229;border:2px dashed #2a2f3a;border-radius:12px;padding:20px;text-align:center;position:relative;cursor:pointer;transition:border-color .2s;}
+.import-box:hover{border-color:#f0a500;}
+.import-box input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.import-ico{font-size:32px;margin-bottom:8px;}
+.import-title{font-size:13px;font-weight:700;color:#e8eaf0;margin-bottom:4px;}
+.import-sub{font-size:11px;color:#7a8099;}
+.import-template{font-size:11px;color:#f0a500;cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block;}
+
+/* TOAST */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#1e2229;border:1px solid #3a3f4a;border-radius:10px;padding:10px 18px;font-size:13px;color:#e8eaf0;z-index:400;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;max-width:90vw;}
+.toast.show{opacity:1;}
+.empty{text-align:center;padding:40px 14px;color:#7a8099;}
+.empty-ico{font-size:38px;margin-bottom:10px;}
+.spinner{width:18px;height:18px;border:2px solid #2a2f3a;border-top-color:#f0a500;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle;}
+
+@media(max-width:480px){.fgrid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="ico">👥</div>
+      <h1>Party Master</h1>
+      <p>I Dream of Cake — Customers & Outlets</p>
+    </div>
+    <div class="login-form">
+      <input type="email" id="authEmail" placeholder="Email address" autocomplete="email">
+      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password">
+      <div id="authErr" class="login-err"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="appScreen" style="display:none;">
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="hlogo">👥</div>
+    <div>
+      <div class="htitle">Party <span>Master</span></div>
+      <div class="hsubtitle">I Dream of Cake</div>
+    </div>
+  </div>
+  <div class="hbtns">
+    <span style="font-size:11px;color:#7a8099;display:flex;align-items:center;"><span class="sync-dot sync-ok" id="syncDot"></span><span id="syncTxt">Synced</span></span>
+    <button class="btn btn-gold" onclick="openPartyModal()">+ Add Party</button>
+  </div>
+</div>
+
+<!-- PAGE: PARTIES -->
+<div class="page active" id="pagePM">
+  <div class="stats" id="pmStats">
+    <div class="stat s-gold"><div class="slbl">Total Parties</div><div class="sval" id="stTotal">0</div></div>
+    <div class="stat s-green"><div class="slbl">Retailers</div><div class="sval" id="stRetail">0</div></div>
+    <div class="stat s-blue"><div class="slbl">Wholesalers</div><div class="sval" id="stWhole">0</div></div>
+    <div class="stat s-purple"><div class="slbl">Customers</div><div class="sval" id="stCust">0</div></div>
+  </div>
+
+  <!-- Import bar -->
+  <div style="padding:0 14px 10px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-green btn-sm" onclick="showImport()">📥 Import CSV</button>
+    <button class="btn btn-sm" onclick="downloadTemplate()">📄 CSV Template</button>
+    <button class="btn btn-sm" onclick="exportParties()">📤 Export</button>
+  </div>
+
+  <div class="type-tabs">
+    <div class="type-tab active t-all" id="tab_all" onclick="setTypeFilter('all')">All</div>
+    <div class="type-tab t-retail" id="tab_retail" onclick="setTypeFilter('retail')">Retailers</div>
+    <div class="type-tab t-wholesale" id="tab_wholesale" onclick="setTypeFilter('wholesale')">Wholesalers</div>
+    <div class="type-tab t-customer" id="tab_customer" onclick="setTypeFilter('customer')">Customers</div>
+  </div>
+
+  <div class="toolbar" style="margin-top:10px;">
+    <input id="partySearch" placeholder="🔍 Search name, phone, area..." oninput="renderParties()">
+  </div>
+
+  <div class="party-list" id="partyList">
+    <div class="empty"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- PAGE: LEDGER -->
+<div class="page" id="pageLedger">
+  <div style="padding:10px 14px 6px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:15px;font-weight:700;" id="ledgerPartyName">Party Ledger</div>
+      <div style="font-size:11px;color:#7a8099;" id="ledgerPartyType">—</div>
+    </div>
+    <button class="btn btn-sm" onclick="showPage('PM')">← Back</button>
+  </div>
+  <div class="stats" id="ledgerStats">
+    <div class="stat s-red"><div class="slbl">Total Billed</div><div class="sval" id="lBilled">₹0</div></div>
+    <div class="stat s-green"><div class="slbl">Total Paid</div><div class="sval" id="lPaid">₹0</div></div>
+    <div class="stat s-gold"><div class="slbl">Balance Due</div><div class="sval" id="lBalance">₹0</div></div>
+    <div class="stat s-blue"><div class="slbl">Credit Limit</div><div class="sval" id="lCreditLimit">₹0</div></div>
+  </div>
+  <div style="padding:0 14px 8px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-gold btn-sm" onclick="openTxnModal('receipt')">+ Receipt</button>
+    <button class="btn btn-red btn-sm" onclick="openTxnModal('debit_note')">+ Debit Note</button>
+    <button class="btn btn-green btn-sm" onclick="openTxnModal('credit_note')">+ Credit Note</button>
+    <button class="btn btn-blue btn-sm" onclick="openTxnModal('payment')">+ Payment</button>
+  </div>
+  <div id="ledgerEntries">
+    <div class="empty"><div class="spinner"></div></div>
+  </div>
+</div>
+
+</div><!-- end appScreen -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bnav-item active" id="bnav_PM" onclick="showPage('PM')"><div class="bnav-ico">👥</div>Parties</div>
+  <div class="bnav-item" id="bnav_Ledger" onclick="showPage('Ledger')"><div class="bnav-ico">📒</div>Ledger</div>
+</div>
+
+<!-- PARTY MODAL -->
+<div class="overlay" id="partyModal">
+  <div class="modal">
+    <button class="mclose" onclick="close_('partyModal')">✕</button>
+    <div class="mtitle" id="pmTitle">Add Party</div>
+    <input type="hidden" id="pm_id">
+    <div class="fgrid">
+      <div class="fgrp ffull">
+        <div class="flbl">Party Type *</div>
+        <select class="finput" id="pm_type">
+          <option value="customer">Customer (Individual)</option>
+          <option value="retail">Retailer / Shop</option>
+          <option value="wholesale">Wholesaler / Distributor</option>
+        </select>
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Name / Business Name *</div>
+        <input class="finput" id="pm_name" placeholder="Full name or shop name">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Phone</div>
+        <input class="finput" id="pm_phone" type="tel" placeholder="Mobile number">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">WhatsApp</div>
+        <input class="finput" id="pm_wa" type="tel" placeholder="WhatsApp number">
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Address</div>
+        <input class="finput" id="pm_address" placeholder="Full address">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Area / Zone</div>
+        <input class="finput" id="pm_area" placeholder="e.g. Salt Lake, Newtown">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">GSTIN</div>
+        <input class="finput" id="pm_gst" placeholder="GST number (if applicable)">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Credit Limit (₹)</div>
+        <input class="finput" id="pm_creditLimit" type="number" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Payment Terms (days)</div>
+        <input class="finput" id="pm_payTerms" type="number" placeholder="e.g. 30">
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Notes</div>
+        <input class="finput" id="pm_notes" placeholder="Any special notes...">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Assigned Salesperson</div>
+        <select class="finput" id="pm_sp">
+          <option value="">— None —</option>
+        </select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Status</div>
+        <select class="finput" id="pm_status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('partyModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveParty()">💾 Save Party</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="overlay" id="txnModal">
+  <div class="modal" style="max-width:400px;">
+    <button class="mclose" onclick="close_('txnModal')">✕</button>
+    <div class="mtitle" id="txnTitle">Add Transaction</div>
+    <input type="hidden" id="txn_partyId">
+    <input type="hidden" id="txn_type">
+    <div class="fgrid">
+      <div class="fgrp ffull">
+        <div class="flbl">Amount (₹) *</div>
+        <input class="finput" id="txn_amt" type="number" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Date</div>
+        <input class="finput" id="txn_date" type="date">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Mode</div>
+        <select class="finput" id="txn_mode">
+          <option>Cash</option><option>UPI</option><option>Bank Transfer</option>
+          <option>Cheque</option><option>Card</option>
+        </select>
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Reference / Remarks</div>
+        <input class="finput" id="txn_ref" placeholder="Invoice no, cheque no, note...">
+      </div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="close_('txnModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveTxn()">✅ Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importModal">
+  <div class="modal" style="max-width:460px;">
+    <button class="mclose" onclick="close_('importModal')">✕</button>
+    <div class="mtitle">📥 Import Parties from CSV</div>
+    <div style="font-size:12px;color:#7a8099;margin-bottom:14px;line-height:1.6;">
+      Upload a CSV with columns: <b>name, type, phone, whatsapp, address, area, gst, credit_limit, pay_terms, notes</b><br>
+      Type must be: <code style="color:#f0a500;">customer</code>, <code style="color:#3ecf8e;">retail</code>, or <code style="color:#5b8dee;">wholesale</code>
+    </div>
+    <div class="import-box">
+      <input type="file" accept=".csv" onchange="handleCSVImport(event)">
+      <div class="import-ico">📄</div>
+      <div class="import-title">Tap to select CSV file</div>
+      <div class="import-sub">or drag and drop here</div>
+    </div>
+    <div style="text-align:center;margin-top:10px;">
+      <span class="import-template" onclick="downloadTemplate()">📄 Download CSV template first</span>
+    </div>
+    <div id="importPreview" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, updateDoc,
+  deleteDoc, onSnapshot, query, orderBy, serverTimestamp, where }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUmib9rrK1uNNbycMy57DvEIKoqN_1Jd4",
+  authDomain: "i-dream-of-cake.firebaseapp.com",
+  projectId: "i-dream-of-cake",
+  storageBucket: "i-dream-of-cake.firebasestorage.app",
+  messagingSenderId: "1089704664769",
+  appId: "1:1089704664769:web:b295c2fa3b1fa097f6fe40"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let parties = [];
+let companions = [];
+let currentTypeFilter = 'all';
+let currentLedgerPartyId = null;
+
+const $ = id => document.getElementById(id);
+const toDay = () => new Date().toISOString().slice(0,10);
+const fmtAmt = n => '₹' + (Number(n)||0).toLocaleString('en-IN');
+const id14 = () => 'p' + Date.now() + Math.floor(Math.random()*999);
+
+function showToast(msg, dur=2500) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+function open_(id){$(id).classList.add('show');}
+function close_(id){$(id).classList.remove('show');}
+window.close_=close_;
+
+function setSyncDot(s){
+  const d=$('syncDot');
+  d.className='sync-dot';
+  d.classList.add(s==='ok'?'sync-ok':s==='err'?'sync-err':'sync-ing');
+  $('syncTxt').textContent=s==='ok'?'Synced':s==='err'?'Error':'Syncing...';
+}
+
+// ── AUTH ──
+window.doLogin = async function(){
+  const email=$('authEmail').value.trim(), pass=$('authPass').value;
+  const err=$('authErr'); err.classList.remove('show');
+  try { await signInWithEmailAndPassword(auth,email,pass); }
+  catch(e){ err.textContent=e.code==='auth/invalid-credential'?'Invalid email or password.':e.message; err.classList.add('show'); }
+};
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    currentUser=user;
+    $('loginScreen').style.display='none';
+    $('appScreen').style.display='block';
+    init();
+  } else {
+    $('loginScreen').style.display='flex';
+    $('appScreen').style.display='none';
+  }
+});
+
+function uid(){ return currentUser?.uid; }
+
+function init(){
+  setSyncDot('ing');
+  listenParties();
+  loadCompanions();
+  $('txn_date').value = toDay();
+}
+
+// ── LISTEN PARTIES (shared across all users via sharedParties collection) ──
+function listenParties(){
+  // Stored in /sharedParties — readable by Mother AND Companion apps
+  const q = query(collection(db,'sharedParties'), orderBy('name','asc'));
+  onSnapshot(q, snap=>{
+    parties = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderParties();
+    updateStats();
+    setSyncDot('ok');
+  }, err=>{ console.error(err); setSyncDot('err'); });
+}
+
+async function loadCompanions(){
+  try{
+    const snap = await getDocs(collection(db,'companions'));
+    companions = snap.docs.map(d=>({uid:d.id,...d.data()}));
+    // Populate SP dropdown
+    const sel=$('pm_sp');
+    sel.innerHTML='<option value="">— None —</option>';
+    companions.filter(c=>c.role==='salesperson').forEach(c=>{
+      const op=document.createElement('option');
+      op.value=c.uid; op.text=c.name||c.email;
+      sel.appendChild(op);
+    });
+  } catch(e){ console.error(e); }
+}
+
+function updateStats(){
+  $('stTotal').textContent = parties.length;
+  $('stRetail').textContent = parties.filter(p=>p.type==='retail').length;
+  $('stWhole').textContent = parties.filter(p=>p.type==='wholesale').length;
+  $('stCust').textContent = parties.filter(p=>p.type==='customer').length;
+}
+
+// ── RENDER PARTIES ──
+window.setTypeFilter = function(type){
+  currentTypeFilter = type;
+  document.querySelectorAll('.type-tab').forEach(t=>t.classList.remove('active'));
+  $('tab_'+type).classList.add('active');
+  renderParties();
+};
+
+window.renderParties = function(){
+  const search=($('partySearch').value||'').toLowerCase();
+  let list = currentTypeFilter==='all' ? parties : parties.filter(p=>p.type===currentTypeFilter);
+  if(search) list = list.filter(p=>JSON.stringify(p).toLowerCase().includes(search));
+
+  const el=$('partyList');
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">👥</div><p>No parties found.<br>Tap <b>+ Add Party</b> or import a CSV.</p></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(p=>{
+    const typeClass = {retail:'pt-retail',wholesale:'pt-wholesale',customer:'pt-customer'}[p.type]||'pt-customer';
+    const typeLabel = {retail:'Retailer',wholesale:'Wholesaler',customer:'Customer'}[p.type]||p.type;
+    const balance = (Number(p.totalBilled||0)) - (Number(p.totalPaid||0));
+    return `<div class="party-card">
+      <div class="pc-top">
+        <div>
+          <div class="pc-name">${p.name}</div>
+          <div class="pc-sub">${p.area||''} ${p.area&&p.phone?'·':''} ${p.phone||''}</div>
+        </div>
+        <span class="pc-type ${typeClass}">${typeLabel}</span>
+      </div>
+      <div class="pc-info">
+        ${p.phone?`<span>📞 ${p.phone}</span>`:''}
+        ${p.address?`<span>📍 ${p.address.slice(0,30)}${p.address.length>30?'...':''}</span>`:''}
+        ${p.gst?`<span>🏷 ${p.gst}</span>`:''}
+        ${p.spName?`<span>👤 SP: ${p.spName}</span>`:''}
+      </div>
+      <div class="pc-ledger">
+        <div class="pc-amt">
+          <div class="pc-amt-lbl">Billed</div>
+          <div class="pc-amt-val" style="color:#f0a500;">${fmtAmt(p.totalBilled||0)}</div>
+        </div>
+        <div class="pc-amt">
+          <div class="pc-amt-lbl">Paid</div>
+          <div class="pc-amt-val" style="color:#3ecf8e;">${fmtAmt(p.totalPaid||0)}</div>
+        </div>
+        <div class="pc-amt">
+          <div class="pc-amt-lbl">Balance</div>
+          <div class="pc-amt-val" style="color:${balance>0?'#f06565':'#3ecf8e'};">${fmtAmt(balance)}</div>
+        </div>
+        ${p.creditLimit?`<div class="pc-amt"><div class="pc-amt-lbl">Credit</div><div class="pc-amt-val" style="color:#5b8dee;">${fmtAmt(p.creditLimit)}</div></div>`:''}
+      </div>
+      <div class="pc-actions">
+        <button class="btn btn-sm" onclick="openPartyModal('${p.id}')">✎ Edit</button>
+        <button class="btn btn-sm btn-blue" onclick="openLedger('${p.id}')">📒 Ledger</button>
+        <button class="btn btn-sm btn-gold btn-sm" onclick="openTxnModalFor('${p.id}','receipt')">+ Receipt</button>
+        <button class="btn btn-sm btn-red" onclick="deleteParty('${p.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+// ── PARTY MODAL ──
+window.openPartyModal = function(id=null){
+  $('pm_id').value = id||'';
+  $('pmTitle').textContent = id ? 'Edit Party' : 'Add Party';
+  if(id){
+    const p=parties.find(x=>x.id===id); if(!p) return;
+    ['name','phone','wa','address','area','gst','notes'].forEach(f=>{const el=$(('pm_'+f));if(el)el.value=p[f]||'';});
+    $('pm_type').value = p.type||'customer';
+    $('pm_creditLimit').value = p.creditLimit||'';
+    $('pm_payTerms').value = p.payTerms||'';
+    $('pm_sp').value = p.spUid||'';
+    $('pm_status').value = p.status||'active';
+  } else {
+    ['name','phone','wa','address','area','gst','notes'].forEach(f=>{const el=$(('pm_'+f));if(el)el.value='';});
+    $('pm_creditLimit').value=''; $('pm_payTerms').value='';
+    $('pm_type').value='customer'; $('pm_status').value='active'; $('pm_sp').value='';
+  }
+  open_('partyModal');
+};
+
+window.saveParty = async function(){
+  const name=$('pm_name').value.trim();
+  if(!name){showToast('Party name is required.');return;}
+  const spSel=$('pm_sp');
+  const spName = spSel.value ? (spSel.options[spSel.selectedIndex]?.text||'') : '';
+  const data={
+    name,
+    type:$('pm_type').value,
+    phone:$('pm_phone').value.trim(),
+    wa:$('pm_wa').value.trim(),
+    address:$('pm_address').value.trim(),
+    area:$('pm_area').value.trim(),
+    gst:$('pm_gst').value.trim(),
+    creditLimit:parseFloat($('pm_creditLimit').value)||0,
+    payTerms:parseInt($('pm_payTerms').value)||0,
+    notes:$('pm_notes').value.trim(),
+    spUid:$('pm_sp').value,
+    spName,
+    status:$('pm_status').value,
+    updatedAt:serverTimestamp(),
+    updatedBy:currentUser.email
+  };
+  const editId=$('pm_id').value;
+  try{
+    setSyncDot('ing');
+    if(editId){
+      await updateDoc(doc(db,'sharedParties',editId),data);
+      showToast('Party updated!');
+    } else {
+      const id=id14();
+      await setDoc(doc(db,'sharedParties',id),{...data,id,totalBilled:0,totalPaid:0,createdAt:serverTimestamp(),createdBy:currentUser.email});
+      showToast('Party added!');
+    }
+    setSyncDot('ok');
+    close_('partyModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+window.deleteParty = async function(id){
+  if(!confirm('Delete this party? Their ledger history will also be removed.')) return;
+  try{
+    await deleteDoc(doc(db,'sharedParties',id));
+    showToast('Deleted.');
+  } catch(e){showToast('Error: '+e.message);}
+};
+
+// ── LEDGER ──
+window.openLedger = function(partyId){
+  currentLedgerPartyId = partyId;
+  const p = parties.find(x=>x.id===partyId);
+  if(!p) return;
+  $('ledgerPartyName').textContent = p.name;
+  $('ledgerPartyType').textContent = {retail:'Retailer',wholesale:'Wholesaler',customer:'Customer'}[p.type]||p.type;
+  const balance = (Number(p.totalBilled||0))-(Number(p.totalPaid||0));
+  $('lBilled').textContent = fmtAmt(p.totalBilled||0);
+  $('lPaid').textContent = fmtAmt(p.totalPaid||0);
+  $('lBalance').textContent = fmtAmt(balance);
+  $('lCreditLimit').textContent = fmtAmt(p.creditLimit||0);
+  showPage('Ledger');
+  loadLedgerEntries(partyId);
+};
+
+async function loadLedgerEntries(partyId){
+  const el=$('ledgerEntries');
+  el.innerHTML='<div class="empty"><div class="spinner"></div></div>';
+  try{
+    const q = query(collection(db,'sharedParties',partyId,'ledger'), orderBy('date','desc'));
+    onSnapshot(q, snap=>{
+      const entries = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(!entries.length){ el.innerHTML='<div class="empty"><div class="empty-ico">📒</div><p>No transactions yet.</p></div>'; return; }
+      const typeLabel={receipt:'Receipt',payment:'Payment',credit_note:'Credit Note',debit_note:'Debit Note',order:'Order/Invoice'};
+      el.innerHTML = entries.map(e=>{
+        const isCr = ['receipt','payment','credit_note'].includes(e.type);
+        return `<div class="ledger-entry">
+          <div>
+            <div class="le-type">${typeLabel[e.type]||e.type}</div>
+            <div class="le-desc">${e.ref||e.mode||'—'}</div>
+            <div class="le-date">${e.date||'—'} ${e.by?'· '+e.by:''}</div>
+          </div>
+          <div class="le-amt ${isCr?'le-credit':'le-debit'}">${isCr?'+ ':'− '}${fmtAmt(e.amt)}</div>
+        </div>`;
+      }).join('');
+    });
+  } catch(e){ el.innerHTML=`<div class="empty"><p>Error loading: ${e.message}</p></div>`; }
+}
+
+window.openTxnModal = function(type){
+  openTxnModalFor(currentLedgerPartyId, type);
+};
+
+window.openTxnModalFor = function(partyId, type){
+  currentLedgerPartyId = partyId;
+  $('txn_partyId').value = partyId;
+  $('txn_type').value = type;
+  $('txn_date').value = toDay();
+  $('txn_amt').value = '';
+  $('txn_ref').value = '';
+  const labels={receipt:'Add Receipt',payment:'Record Payment',credit_note:'Credit Note',debit_note:'Debit Note'};
+  $('txnTitle').textContent = labels[type]||type;
+  open_('txnModal');
+};
+
+window.saveTxn = async function(){
+  const partyId=$('txn_partyId').value;
+  const type=$('txn_type').value;
+  const amt=parseFloat($('txn_amt').value)||0;
+  const date=$('txn_date').value;
+  const mode=$('txn_mode').value;
+  const ref=$('txn_ref').value.trim();
+  if(!amt||!partyId){showToast('Please enter amount.');return;}
+  try{
+    setSyncDot('ing');
+    const entry={type,amt,date,mode,ref,by:currentUser.email,createdAt:serverTimestamp()};
+    await addDoc(collection(db,'sharedParties',partyId,'ledger'),entry);
+    // Update party totals
+    const p=parties.find(x=>x.id===partyId);
+    const isCr=['receipt','payment','credit_note'].includes(type);
+    const update={updatedAt:serverTimestamp()};
+    if(isCr) update.totalPaid=(Number(p?.totalPaid||0)+amt);
+    else update.totalBilled=(Number(p?.totalBilled||0)+amt);
+    await updateDoc(doc(db,'sharedParties',partyId),update);
+    showToast('✅ Transaction saved!');
+    setSyncDot('ok');
+    close_('txnModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+// ── PAGE NAVIGATION ──
+window.showPage = function(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  $('page'+page)?.classList.add('active');
+  $('bnav_'+page)?.classList.add('active');
+};
+
+// ── CSV IMPORT ──
+window.showImport = function(){ open_('importModal'); };
+
+window.handleCSVImport = async function(e){
+  const file=e.target.files[0]; if(!file) return;
+  const text=await file.text();
+  const lines=text.trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+  const rows=lines.slice(1).map(l=>{
+    const vals=l.split(',').map(v=>v.trim().replace(/^"|"$/g,''));
+    const obj={};
+    headers.forEach((h,i)=>obj[h]=vals[i]||'');
+    return obj;
+  }).filter(r=>r.name);
+
+  $('importPreview').innerHTML=`<div style="background:#1a1f28;border-radius:8px;padding:12px;font-size:12px;">
+    <b style="color:#3ecf8e;">✅ ${rows.length} parties ready to import</b><br>
+    <div style="color:#7a8099;margin-top:6px;">${rows.slice(0,3).map(r=>`• ${r.name} (${r.type||'customer'})`).join('<br>')}</div>
+    ${rows.length>3?`<div style="color:#5a6070;">...and ${rows.length-3} more</div>`:''}
+    <button class="btn btn-gold" style="margin-top:10px;width:100%;" onclick="confirmImport(${JSON.stringify(rows).replace(/"/g,'&quot;')})">📥 Import ${rows.length} Parties</button>
+  </div>`;
+};
+
+window.confirmImport = async function(rows){
+  let count=0;
+  setSyncDot('ing');
+  for(const r of rows){
+    try{
+      const id=id14();
+      await setDoc(doc(db,'sharedParties',id),{
+        id,name:r.name,type:(r.type||'customer').toLowerCase(),
+        phone:r.phone||'',wa:r.whatsapp||r.wa||'',
+        address:r.address||'',area:r.area||'',
+        gst:r.gst||'',creditLimit:parseFloat(r.credit_limit)||0,
+        payTerms:parseInt(r.pay_terms)||0,notes:r.notes||'',
+        totalBilled:0,totalPaid:0,status:'active',
+        createdAt:serverTimestamp(),createdBy:currentUser.email
+      });
+      count++;
+    } catch(e){ console.error(e); }
+  }
+  showToast(`✅ ${count} parties imported!`);
+  setSyncDot('ok');
+  close_('importModal');
+};
+
+window.downloadTemplate = function(){
+  const csv=`name,type,phone,whatsapp,address,area,gst,credit_limit,pay_terms,notes
+Sweet Shoppe,retail,9876543210,9876543210,"123 MG Road","Salt Lake","29AABCS1429B1ZB",50000,30,Regular customer
+Bakery World,wholesale,9123456780,9123456780,"456 Park Street","Newtown","27AAPFU0939F1ZV",200000,45,Monthly billing
+Priya Sharma,customer,9000012345,9000012345,"789 Lake Town","Lake Town",,0,0,Birthday cakes`;
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='party_master_template.csv'; a.click();
+};
+
+window.exportParties = function(){
+  if(!parties.length){showToast('No parties to export.');return;}
+  const rows=[['Name','Type','Phone','WhatsApp','Address','Area','GST','Credit Limit','Pay Terms','Total Billed','Total Paid','Balance','Status']];
+  parties.forEach(p=>{
+    const bal=(Number(p.totalBilled||0))-(Number(p.totalPaid||0));
+    rows.push([p.name,p.type,p.phone,p.wa,p.address,p.area,p.gst,p.creditLimit,p.payTerms,p.totalBilled||0,p.totalPaid||0,bal,p.status]);
+  });
+  const csv=rows.map(r=>r.map(x=>`"${(x||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='parties_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+};
+
+</script>
+</body>
+</html>
