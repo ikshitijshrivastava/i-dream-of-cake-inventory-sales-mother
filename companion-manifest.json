@@ -1,0 +1,26 @@
+{
+  "name": "I Dream of Cake — Field App",
+  "short_name": "IDoCake Field",
+  "description": "Field companion app for salespersons and outlet partners of I Dream of Cake",
+  "start_url": "/companion.html",
+  "display": "standalone",
+  "background_color": "#0a0c10",
+  "theme_color": "#e05c3a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en-IN"
+}
