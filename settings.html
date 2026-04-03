@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Business Settings — I Dream of Cake</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0f14;color:#e8eaf0;font-family:Arial,sans-serif;font-size:14px;min-height:100vh;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOGIN */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0d0f14,#1a1040);}
+.login-box{background:#161920;border:1px solid #2a2f3a;border-radius:20px;padding:32px 28px;width:100%;max-width:380px;text-align:center;}
+.login-logo .ico{font-size:48px;margin-bottom:8px;}
+.login-logo h1{font-size:22px;font-weight:900;color:#f0a500;}
+.login-logo p{font-size:12px;color:#7a8099;margin-top:4px;margin-bottom:20px;}
+.login-form{display:flex;flex-direction:column;gap:12px;}
+.login-form input{background:#1e2229;border:1px solid #2a2f3a;border-radius:9px;padding:12px 14px;color:#e8eaf0;font-size:14px;width:100%;}
+.login-form input:focus{outline:none;border-color:#f0a500;}
+.login-btn{background:#f0a500;color:#000;border:none;border-radius:9px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;}
+.login-err{background:rgba(240,101,101,.15);border:1px solid rgba(240,101,101,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#f06565;display:none;margin-top:6px;}
+.login-err.show{display:block;}
+
+/* SYNC */
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.sync-ok{background:#3ecf8e;}.sync-err{background:#f06565;}.sync-ing{background:#f0a500;animation:pulse 1s infinite;}
+
+/* HEADER */
+.hdr{background:#161920;border-bottom:1px solid #2a2f3a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:50;}
+.hlogo-wrap{width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0a500,#e05c3a);}
+.hlogo-wrap img{width:100%;height:100%;object-fit:cover;}
+.htitle{font-size:15px;font-weight:bold;}.htitle span{color:#f0a500;}
+.hsubtitle{font-size:10px;color:#7a8099;}
+.sync-bar{font-size:11px;color:#7a8099;display:flex;align-items:center;}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#161920;border-top:1px solid #2a2f3a;display:flex;z-index:45;padding-bottom:env(safe-area-inset-bottom);}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;cursor:pointer;color:#7a8099;font-size:9px;gap:2px;transition:color .2s;border:none;background:none;}
+.bnav-item.active{color:#f0a500;}
+.bnav-ico{font-size:18px;line-height:1;}
+.page{display:none;padding:0 0 80px;}
+.page.active{display:block;}
+
+/* BUTTONS */
+button{cursor:pointer;border:none;font-family:Arial,sans-serif;font-size:13px;transition:opacity .15s;}
+button:active{opacity:.75;}
+.btn{background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;padding:7px 12px;border-radius:8px;font-weight:500;}
+.btn-gold{background:#f0a500;color:#000;font-weight:700;}
+.btn-red{background:rgba(240,101,101,.18);color:#f06565;border:1px solid rgba(240,101,101,.4);}
+.btn-green{background:rgba(62,207,142,.15);color:#3ecf8e;border:1px solid rgba(62,207,142,.3);}
+.btn-blue{background:rgba(91,141,238,.15);color:#5b8dee;border:1px solid rgba(91,141,238,.3);}
+.btn-orange{background:rgba(224,92,58,.15);color:#e05c3a;border:1px solid rgba(224,92,58,.3);}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+.btn-full{width:100%;padding:12px;font-size:14px;font-weight:700;border-radius:9px;}
+
+/* SECTION */
+.sec{background:#161920;border:1px solid #2a2f3a;border-radius:14px;padding:16px;margin:10px 14px;}
+.sec-title{font-size:13px;font-weight:700;color:#f0a500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title-row .sec-title{margin-bottom:0;}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ffull{grid-column:1/-1;}
+.fgrp{display:flex;flex-direction:column;gap:4px;}
+.flbl{font-size:11px;color:#7a8099;text-transform:uppercase;letter-spacing:.3px;font-weight:500;}
+.finput{background:#1e2229;border:1px solid #2a2f3a;border-radius:8px;padding:9px 10px;color:#e8eaf0;font-size:13px;width:100%;}
+.finput:focus{outline:none;border-color:#f0a500;}
+textarea.finput{resize:vertical;min-height:70px;}
+
+/* LOGO UPLOAD */
+.logo-upload{width:72px;height:72px;border-radius:12px;background:#1e2229;border:2px dashed #2a2f3a;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0;}
+.logo-upload img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:none;}
+.logo-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0;}
+
+/* PRODUCT ITEMS */
+.prod-row{background:#1a1f28;border:1px solid #2a2f3a;border-radius:10px;padding:12px;margin-bottom:8px;animation:fadeIn .2s;}
+.prod-row-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.prod-row-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.prod-drag{color:#404554;cursor:grab;font-size:16px;flex-shrink:0;}
+.prod-name-input{flex:1;background:#1e2229;border:1px solid #2a2f3a;border-radius:7px;padding:8px 10px;color:#e8eaf0;font-size:13px;font-weight:600;}
+.prod-name-input:focus{outline:none;border-color:#f0a500;}
+.prod-del{background:rgba(240,101,101,.15);color:#f06565;border:1px solid rgba(240,101,101,.3);border-radius:6px;padding:5px 9px;font-size:12px;flex-shrink:0;}
+.cat-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(240,165,0,.15);color:#f0a500;border:1px solid rgba(240,165,0,.3);}
+
+/* PRICE LIST ROWS */
+.pl-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1a1f28;}
+.pl-row:last-child{border-bottom:none;}
+.pl-item-name{flex:1;font-size:13px;}
+.pl-price-input{width:90px;background:#1e2229;border:1px solid #2a2f3a;border-radius:7px;padding:6px 8px;color:#f0a500;font-size:13px;font-weight:700;text-align:right;}
+.pl-price-input:focus{outline:none;border-color:#f0a500;}
+.pl-unit{font-size:11px;color:#5a6070;width:40px;}
+
+/* SCHEME CARDS */
+.scheme-row{background:#1a1f28;border:1px solid rgba(224,92,58,.25);border-radius:10px;padding:12px;margin-bottom:8px;}
+.sch-name{font-size:13px;font-weight:700;color:#e05c3a;}
+.sch-meta{font-size:11px;color:#7a8099;margin-top:3px;}
+.sch-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-left:6px;}
+.sch-active{background:rgba(62,207,142,.15);color:#3ecf8e;}
+.sch-expired{background:rgba(240,101,101,.12);color:#f06565;}
+
+/* IMPORT/EXPORT */
+.drop-zone{border:2px dashed #2a2f3a;border-radius:10px;padding:18px;text-align:center;position:relative;cursor:pointer;transition:border-color .2s;}
+.drop-zone:hover{border-color:#f0a500;}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;font-size:0;}
+.drop-ico{font-size:28px;margin-bottom:6px;}
+.drop-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.drop-sub{font-size:11px;color:#7a8099;}
+
+/* TOAST / MODAL */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#1e2229;border:1px solid #3a3f4a;border-radius:10px;padding:10px 18px;font-size:13px;color:#e8eaf0;z-index:400;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;max-width:90vw;}
+.toast.show{opacity:1;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:12px;}
+.overlay.show{display:flex;}
+.modal{background:#161920;border:1px solid #2a2f3a;border-radius:16px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;padding:20px;position:relative;}
+.mclose{position:absolute;top:13px;right:13px;background:#1e2229;border:1px solid #2a2f3a;color:#e8eaf0;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.mtitle{font-size:16px;font-weight:bold;margin-bottom:16px;}
+.factions{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+.empty{text-align:center;padding:30px 14px;color:#7a8099;}
+.empty-ico{font-size:32px;margin-bottom:8px;}
+.spinner{width:16px;height:16px;border:2px solid #2a2f3a;border-top-color:#f0a500;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+.sync-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(62,207,142,.1);color:#3ecf8e;border:1px solid rgba(62,207,142,.25);}
+
+@media(max-width:480px){.fgrid{grid-template-columns:1fr;}.prod-row-fields{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="ico">⚙️</div>
+      <h1>Business Settings</h1>
+      <p>I Dream of Cake — Configure everything</p>
+    </div>
+    <div class="login-form">
+      <input type="email" id="authEmail" placeholder="Email address" autocomplete="email">
+      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password">
+      <div id="authErr" class="login-err"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appScreen" style="display:none;">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="hlogo-wrap" id="hdrLogo">
+      <span style="font-size:18px;">⚙️</span>
+    </div>
+    <div>
+      <div class="htitle" id="hdrBizName">Business <span>Settings</span></div>
+      <div class="hsubtitle" id="hdrBizSub">Configure your business</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="sync-bar"><span class="sync-dot sync-ok" id="syncDot"></span><span id="syncTxt">Synced</span></span>
+    <a href="index.html" style="font-size:11px;color:#7a8099;text-decoration:none;background:#1e2229;border:1px solid #2a2f3a;padding:5px 10px;border-radius:7px;">← Mother App</a>
+  </div>
+</div>
+
+<!-- ═══ PAGE: PROFILE ═══ -->
+<div class="page active" id="pageProfile">
+  <div style="padding:10px 0;">
+
+    <div class="sec">
+      <div class="sec-title">🏢 Business Profile</div>
+
+      <!-- Logo + name row -->
+      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <div class="logo-upload" id="logoUploadBox" onclick="document.getElementById('logoInput').click()">
+            <input type="file" id="logoInput" accept="image/*" onchange="handleLogoUpload(this)">
+            <img id="logoPreview" alt="Logo">
+            <span id="logoPlaceholder" style="font-size:28px;">🏢</span>
+          </div>
+          <div style="font-size:10px;color:#5a6070;text-align:center;margin-top:4px;">Tap to change</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#7a8099;margin-bottom:6px;">Logo appears on all invoices, bills &amp; confirmations sent to customers.</div>
+          <div class="sync-chip">🔄 Syncs to Field App</div>
+        </div>
+      </div>
+
+      <div class="fgrid">
+        <div class="fgrp ffull">
+          <div class="flbl">Business / Company Name *</div>
+          <input class="finput" id="p_bizName" placeholder="e.g. I Dream of Cake">
+        </div>
+        <div class="fgrp ffull">
+          <div class="flbl">Tagline / Description</div>
+          <input class="finput" id="p_tagline" placeholder="e.g. 100% Eggless Designer Cakes">
+        </div>
+        <div class="fgrp">
+          <div class="flbl">Owner / Contact Person</div>
+          <input class="finput" id="p_owner" placeholder="e.g. Santula Shrivastava">
+        </div>
+        <div class="fgrp">
+          <div class="flbl">Phone</div>
+          <input class="finput" id="p_phone" type="tel" placeholder="9903941817">
+        </div>
+        <div class="fgrp">
+          <div class="flbl">Email</div>
+          <input class="finput" id="p_email" type="email" placeholder="your@email.com">
+        </div>
+        <div class="fgrp">
+          <div class="flbl">Website / Social</div>
+          <input class="finput" id="p_social" placeholder="@handle or website">
+        </div>
+        <div class="fgrp ffull">
+          <div class="flbl">Full Address</div>
+          <textarea class="finput" id="p_address" rows="2" placeholder="Building, Street, City, PIN"></textarea>
+        </div>
+        <div class="fgrp">
+          <div class="flbl">GST Number</div>
+          <input class="finput" id="p_gst" placeholder="GST No. (optional)">
+        </div>
+        <div class="fgrp">
+          <div class="flbl">Currency Symbol</div>
+          <select class="finput" id="p_currency">
+            <option value="₹">₹ Indian Rupee</option>
+            <option value="$">$ US Dollar</option>
+            <option value="€">€ Euro</option>
+            <option value="£">£ Pound</option>
+            <option value="Rs">Rs (text)</option>
+          </select>
+        </div>
+        <div class="fgrp ffull">
+          <div class="flbl">Bank / UPI Details (shown on invoices)</div>
+          <textarea class="finput" id="p_bank" rows="2" placeholder="UPI: yourname@upi&#10;Bank: HDFC, A/C 123456, IFSC HDFC0001234"></textarea>
+        </div>
+        <div class="fgrp ffull">
+          <div class="flbl">Default Invoice Terms &amp; Conditions</div>
+          <textarea class="finput" id="p_terms" rows="3" placeholder="e.g. Orders once confirmed are non-cancellable. Design cannot be changed."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-gold btn-full" style="margin-top:14px;" onclick="saveProfile()">💾 Save Profile &amp; Sync to Field App</button>
+    </div>
+
+    <!-- App Branding Preview -->
+    <div class="sec">
+      <div class="sec-title">👁 Preview — How it appears</div>
+      <div id="brandPreview" style="background:#0d0f14;border-radius:10px;padding:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="prevLogo" style="width:40px;height:40px;background:linear-gradient(135deg,#f0a500,#e05c3a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🎂</div>
+          <div>
+            <div id="prevName" style="font-size:15px;font-weight:700;color:#f0a500;">I Dream of Cake</div>
+            <div id="prevTagline" style="font-size:11px;color:#7a8099;">100% Eggless Designer Cakes</div>
+            <div id="prevContact" style="font-size:10px;color:#5a6070;margin-top:2px;">9903941817</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE: PRODUCTS / CATALOGUE ═══ -->
+<div class="page" id="pageProducts">
+  <div style="padding:10px 0;">
+
+    <!-- Import/Export bar -->
+    <div style="padding:0 14px 8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-green btn-sm" onclick="showImportModal('products')">📥 Import CSV</button>
+      <button class="btn btn-sm" onclick="exportProducts()">📤 Export CSV</button>
+      <button class="btn btn-sm" onclick="downloadProductTemplate()">📄 Template</button>
+      <button class="btn btn-gold btn-sm" onclick="saveProducts()">💾 Save &amp; Sync</button>
+    </div>
+    <div style="padding:0 14px 8px;font-size:12px;color:#7a8099;">
+      🔄 All products sync live to the Field App catalogue. Field users see prices, stock &amp; discounts instantly.
+    </div>
+
+    <!-- Category filter chips -->
+    <div style="display:flex;gap:6px;padding:0 14px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <div class="cat-badge" style="cursor:pointer;" onclick="filterProdCat('')">All</div>
+      <div id="catChips"></div>
+      <button class="btn btn-sm" onclick="addCategory()" style="white-space:nowrap;flex-shrink:0;">+ Category</button>
+    </div>
+
+    <div style="padding:0 14px;" id="productList"></div>
+
+    <div style="padding:0 14px;">
+      <button class="btn btn-gold btn-full" onclick="addProductRow()">+ Add Product / Item</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE: PRICE LISTS ═══ -->
+<div class="page" id="pagePriceLists">
+  <div style="padding:10px 0;">
+
+    <div style="padding:0 14px 8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-gold btn-sm" onclick="addPriceList()">+ New Price List</button>
+      <button class="btn btn-green btn-sm" onclick="showImportModal('pricelist')">📥 Import</button>
+      <button class="btn btn-sm" onclick="exportPriceLists()">📤 Export</button>
+    </div>
+    <div style="padding:0 14px 10px;font-size:12px;color:#7a8099;">
+      Create multiple price lists — e.g. Retail, Wholesale, Festival. Field app selects from dropdown.
+    </div>
+
+    <div id="priceListsContainer" style="padding:0 14px;"></div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE: SCHEMES ═══ -->
+<div class="page" id="pageSchemes">
+  <div style="padding:10px 0;">
+
+    <div style="padding:0 14px 8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-orange btn-sm" onclick="openSchemeModal()">+ Add Scheme</button>
+      <button class="btn btn-green btn-sm" onclick="showImportModal('schemes')">📥 Import</button>
+      <button class="btn btn-sm" onclick="exportSchemes()">📤 Export</button>
+    </div>
+    <div style="padding:0 14px 10px;font-size:12px;color:#7a8099;">
+      Schemes &amp; discounts sync to Field App instantly. Field users see active schemes when placing orders.
+    </div>
+
+    <div id="schemesList" style="padding:0 14px;"></div>
+
+  </div>
+</div>
+
+</div><!-- end appScreen -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav-item active" id="bn_Profile" onclick="showPage('Profile')"><span class="bnav-ico">🏢</span>Profile</button>
+  <button class="bnav-item" id="bn_Products" onclick="showPage('Products')"><span class="bnav-ico">🎂</span>Products</button>
+  <button class="bnav-item" id="bn_PriceLists" onclick="showPage('PriceLists')"><span class="bnav-ico">💰</span>Prices</button>
+  <button class="bnav-item" id="bn_Schemes" onclick="showPage('Schemes')"><span class="bnav-ico">🎉</span>Schemes</button>
+</div>
+
+<!-- SCHEME MODAL -->
+<div class="overlay" id="schemeModal">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('schemeModal')">✕</button>
+    <div class="mtitle" id="schemeMTitle">Add Scheme / Offer</div>
+    <input type="hidden" id="sch_id">
+    <div class="fgrid">
+      <div class="fgrp ffull"><div class="flbl">Scheme Name *</div><input class="finput" id="sch_name" placeholder="e.g. Diwali Offer, Bulk Discount"></div>
+      <div class="fgrp ffull">
+        <div class="flbl">Type</div>
+        <select class="finput" id="sch_type">
+          <option value="percent_discount">% Discount on MRP</option>
+          <option value="flat_discount">Flat Amount Off</option>
+          <option value="buy_x_get_y">Buy X Get Y Free</option>
+          <option value="free_delivery">Free Delivery</option>
+          <option value="fixed_price">Special Fixed Price</option>
+          <option value="seasonal">Seasonal Offer</option>
+        </select>
+      </div>
+      <div class="fgrp ffull"><div class="flbl">Description (shown to field team)</div><input class="finput" id="sch_desc" placeholder="e.g. 15% off on all cakes above 2kg"></div>
+      <div class="fgrp">
+        <div class="flbl">Discount Value</div>
+        <input class="finput" id="sch_value" type="number" placeholder="e.g. 15 for 15%">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Min Order Value (₹)</div>
+        <input class="finput" id="sch_minOrder" type="number" placeholder="0 = no minimum">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Applies To</div>
+        <select class="finput" id="sch_applies">
+          <option value="all">All Parties</option>
+          <option value="retail">Retailers Only</option>
+          <option value="wholesale">Wholesalers Only</option>
+          <option value="customer">Customers Only</option>
+        </select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Products (blank = all)</div>
+        <input class="finput" id="sch_products" placeholder="Comma-separated product names">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Valid From</div>
+        <input class="finput" id="sch_from" type="date">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Valid Until (blank = no expiry)</div>
+        <input class="finput" id="sch_to" type="date">
+      </div>
+      <div class="fgrp ffull">
+        <div class="flbl">Internal Notes (not shown to field)</div>
+        <input class="finput" id="sch_notes" placeholder="Optional internal note">
+      </div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="closeModal('schemeModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveScheme()">🎉 Save &amp; Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importModal">
+  <div class="modal" style="max-width:440px;">
+    <button class="mclose" onclick="closeModal('importModal')">✕</button>
+    <div class="mtitle" id="importTitle">📥 Import from CSV</div>
+    <div style="font-size:12px;color:#7a8099;margin-bottom:12px;line-height:1.6;" id="importHint"></div>
+    <div class="drop-zone">
+      <input type="file" accept=".csv" id="csvFileInput" onchange="handleCSVFile(event)">
+      <div class="drop-ico">📄</div>
+      <div class="drop-title">Tap to select CSV file</div>
+      <div class="drop-sub">Must match the template format</div>
+    </div>
+    <div id="importPreview" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- PRICE LIST MODAL -->
+<div class="overlay" id="plModal">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('plModal')">✕</button>
+    <div class="mtitle" id="plMTitle">Price List</div>
+    <input type="hidden" id="pl_id">
+    <div class="fgrid">
+      <div class="fgrp ffull"><div class="flbl">Price List Name *</div><input class="finput" id="pl_name" placeholder="e.g. Retail, Wholesale, Festival"></div>
+      <div class="fgrp">
+        <div class="flbl">Applies To</div>
+        <select class="finput" id="pl_applies">
+          <option value="all">All</option>
+          <option value="retail">Retail</option>
+          <option value="wholesale">Wholesale</option>
+          <option value="customer">Customer</option>
+        </select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Default Discount %</div>
+        <input class="finput" id="pl_disc" type="number" placeholder="0">
+      </div>
+      <div class="fgrp ffull"><div class="flbl">Description</div><input class="finput" id="pl_desc" placeholder="Optional description"></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="flbl" style="margin-bottom:8px;">Item Prices (from your products)</div>
+      <div id="plItemsContainer"></div>
+    </div>
+    <div class="factions">
+      <button class="btn" onclick="closeModal('plModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="savePriceList()">💾 Save Price List</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, collection, setDoc, getDoc, getDocs, updateDoc,
+  deleteDoc, onSnapshot, serverTimestamp, writeBatch }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUmib9rrK1uNNbycMy57DvEIKoqN_1Jd4",
+  authDomain: "i-dream-of-cake.firebaseapp.com",
+  projectId: "i-dream-of-cake",
+  storageBucket: "i-dream-of-cake.firebasestorage.app",
+  messagingSenderId: "1089704664769",
+  appId: "1:1089704664769:web:b295c2fa3b1fa097f6fe40"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── State ──
+let currentUser = null;
+let bizProfile = {};
+let products = [];       // sharedCatalogue
+let priceLists = [];     // sharedPriceLists
+let schemes = [];        // sharedSchemes
+let categories = [];
+let importMode = '';
+let editPLId = null;
+
+const $ = id => document.getElementById(id);
+const toDay = () => new Date().toISOString().slice(0,10);
+
+// ── Helpers ──
+function showToast(msg, dur=2800) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+function openModal(id){$(id).classList.add('show');}
+function closeModal(id){$(id).classList.remove('show');}
+window.closeModal=closeModal;
+
+function setSyncDot(s){
+  const d=$('syncDot'); d.className='sync-dot';
+  d.classList.add(s==='ok'?'sync-ok':s==='err'?'sync-err':'sync-ing');
+  $('syncTxt').textContent=s==='ok'?'Synced':s==='err'?'Error':'Saving...';
+}
+
+// ── AUTH ──
+window.doLogin = async function(){
+  const email=$('authEmail').value.trim(), pass=$('authPass').value;
+  const err=$('authErr'); err.classList.remove('show');
+  try { await signInWithEmailAndPassword(auth,email,pass); }
+  catch(e){ err.textContent=e.code==='auth/invalid-credential'?'Invalid email or password.':e.message; err.classList.add('show'); }
+};
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    currentUser=user;
+    $('loginScreen').style.display='none';
+    $('appScreen').style.display='block';
+    init();
+  } else {
+    $('loginScreen').style.display='flex';
+    $('appScreen').style.display='none';
+  }
+});
+
+// ── INIT ──
+async function init(){
+  setSyncDot('ing');
+  await loadProfile();
+  loadProducts();
+  loadPriceLists();
+  loadSchemes();
+}
+
+// ══════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════
+async function loadProfile(){
+  try{
+    // Load from Mother app's own profile AND sharedSettings
+    const [d1, d2] = await Promise.all([
+      getDoc(doc(db,'users',currentUser.uid,'settings','profile')),
+      getDoc(doc(db,'settings','bizProfile'))
+    ]);
+    const p1 = d1.exists()?d1.data():{};
+    const p2 = d2.exists()?d2.data():{};
+    bizProfile = {...p1,...p2}; // sharedSettings overrides
+    applyProfileToForm();
+    applyProfileToHeader();
+    setSyncDot('ok');
+  } catch(e){ console.error(e); setSyncDot('err'); }
+}
+
+function applyProfileToForm(){
+  const fields = ['bizName','tagline','owner','phone','email','social','address','gst','bank','terms'];
+  fields.forEach(f=>{ const el=$(('p_'+f)); if(el) el.value=bizProfile[f]||''; });
+  if(bizProfile.currency) $('p_currency').value=bizProfile.currency||'₹';
+  if(bizProfile.logo){
+    $('logoPreview').src=bizProfile.logo;
+    $('logoPreview').style.display='block';
+    $('logoPlaceholder').style.display='none';
+  }
+  updatePreview();
+}
+
+function applyProfileToHeader(){
+  $('hdrBizName').innerHTML = (bizProfile.bizName||'Business') + ' <span>Settings</span>';
+  $('hdrBizSub').textContent = bizProfile.tagline||'Configure your business';
+  if(bizProfile.logo){
+    $('hdrLogo').innerHTML = `<img src="${bizProfile.logo}" style="width:100%;height:100%;object-fit:cover;border-radius:9px;">`;
+  }
+}
+
+window.handleLogoUpload = function(input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    bizProfile.logo=e.target.result;
+    $('logoPreview').src=e.target.result; $('logoPreview').style.display='block';
+    $('logoPlaceholder').style.display='none';
+    updatePreview();
+  };
+  r.readAsDataURL(f); input.value='';
+};
+
+function updatePreview(){
+  const name=$('p_bizName').value||bizProfile.bizName||'Business Name';
+  const tag=$('p_tagline').value||bizProfile.tagline||'';
+  const phone=$('p_phone').value||bizProfile.phone||'';
+  $('prevName').textContent=name;
+  $('prevTagline').textContent=tag;
+  $('prevContact').textContent=phone;
+  if(bizProfile.logo){
+    $('prevLogo').innerHTML=`<img src="${bizProfile.logo}" style="width:40px;height:40px;object-fit:cover;border-radius:9px;">`;
+  } else {
+    $('prevLogo').textContent='🎂';
+  }
+}
+['p_bizName','p_tagline','p_phone'].forEach(id=>{
+  document.addEventListener('DOMContentLoaded',()=>{ const el=$(id); if(el) el.addEventListener('input',updatePreview); });
+});
+
+window.saveProfile = async function(){
+  const name=$('p_bizName').value.trim();
+  if(!name){showToast('Business name is required.');return;}
+  setSyncDot('ing');
+  const data={
+    bizName:name, tagline:$('p_tagline').value.trim(),
+    owner:$('p_owner').value.trim(), phone:$('p_phone').value.trim(),
+    email:$('p_email').value.trim(), social:$('p_social').value.trim(),
+    address:$('p_address').value.trim(), gst:$('p_gst').value.trim(),
+    bank:$('p_bank').value.trim(), terms:$('p_terms').value.trim(),
+    currency:$('p_currency').value,
+    logo:bizProfile.logo||'',
+    updatedAt:serverTimestamp()
+  };
+  try{
+    // Save to both: user's own profile AND shared settings (for companion app)
+    await Promise.all([
+      setDoc(doc(db,'users',currentUser.uid,'settings','profile'),data,{merge:true}),
+      setDoc(doc(db,'settings','bizProfile'),data,{merge:true})
+    ]);
+    bizProfile={...bizProfile,...data};
+    applyProfileToHeader();
+    showToast('✅ Profile saved & synced to Field App!');
+    setSyncDot('ok');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+// ══════════════════════════════════════
+// PRODUCTS / CATALOGUE
+// ══════════════════════════════════════
+const DEFAULT_UNITS = ['kg','g','piece','dozen','box','packet','litre','ml','dozen','tray'];
+const DEFAULT_CATS = ['Cakes','Pastries','Cupcakes','Brownies','Cookies','Beverages','Other'];
+
+function loadProducts(){
+  onSnapshot(collection(db,'sharedCatalogue'), snap=>{
+    products = snap.docs.map(d=>({id:d.id,...d.data()}));
+    products.sort((a,b)=>(a.order||999)-(b.order||999)||(a.name||'').localeCompare(b.name||''));
+    buildCategories();
+    renderProducts();
+    setSyncDot('ok');
+  }, err=>{console.error(err);setSyncDot('err');});
+}
+
+function buildCategories(){
+  categories = [...new Set(products.map(p=>p.category||'Other').filter(Boolean))];
+  if(!categories.length) categories = DEFAULT_CATS.slice(0,3);
+  renderCatChips();
+}
+
+function renderCatChips(){
+  $('catChips').innerHTML = categories.map(c=>
+    `<div class="cat-badge" style="cursor:pointer;" onclick="filterProdCat('${c}')">${c}</div>`
+  ).join('');
+}
+
+let currentCatFilter = '';
+window.filterProdCat = function(cat){ currentCatFilter=cat; renderProducts(); };
+
+window.addCategory = function(){
+  const name = prompt('New category name:');
+  if(name && !categories.includes(name)){ categories.push(name); renderCatChips(); }
+};
+
+function renderProducts(){
+  const el=$('productList');
+  let list = currentCatFilter ? products.filter(p=>p.category===currentCatFilter) : products;
+  if(!list.length && !currentCatFilter){
+    el.innerHTML='<div class="empty"><div class="empty-ico">🎂</div><p>No products yet.<br>Tap <b>+ Add Product</b> below.</p></div>';
+    return;
+  }
+  el.innerHTML=list.map((p,i)=>buildProdRow(p,i)).join('');
+}
+
+function buildProdRow(p, i){
+  const unitOpts = DEFAULT_UNITS.map(u=>`<option value="${u}" ${p.unit===u?'selected':''}>${u}</option>`).join('');
+  const catOpts = [...DEFAULT_CATS,...categories.filter(c=>!DEFAULT_CATS.includes(c))]
+    .map(c=>`<option value="${c}" ${p.category===c?'selected':''}>${c}</option>`).join('');
+  return `<div class="prod-row" id="prow_${p.id}">
+    <div class="prod-row-top">
+      <span class="prod-drag">⠿</span>
+      <input class="prod-name-input" id="pn_${p.id}" value="${p.name||''}" placeholder="Product / Item name *">
+      <button class="prod-del" onclick="deleteProduct('${p.id}')">✕</button>
+    </div>
+    <div class="prod-row-fields">
+      <div class="fgrp">
+        <div class="flbl">Base Price *</div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:12px;color:#f0a500;">${bizProfile.currency||'₹'}</span>
+          <input class="finput" id="pp_${p.id}" type="number" value="${p.price||''}" placeholder="0" style="flex:1;">
+        </div>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Unit</div>
+        <select class="finput" id="pu_${p.id}">${unitOpts}</select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Category</div>
+        <select class="finput" id="pc_${p.id}">${catOpts}</select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Stock Qty</div>
+        <input class="finput" id="ps_${p.id}" type="number" value="${p.stock||''}" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Reorder At</div>
+        <input class="finput" id="pr_${p.id}" type="number" value="${p.reorder||''}" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Min Order Qty</div>
+        <input class="finput" id="pm_${p.id}" type="number" value="${p.minQty||''}" placeholder="1">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Retail Disc %</div>
+        <input class="finput" id="prd_${p.id}" type="number" value="${p.retDisc||''}" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Wholesale Disc %</div>
+        <input class="finput" id="pwd_${p.id}" type="number" value="${p.wsDisc||''}" placeholder="0">
+      </div>
+      <div class="fgrp">
+        <div class="flbl">Status</div>
+        <select class="finput" id="pst_${p.id}">
+          <option value="active" ${p.status==='active'?'selected':''}>Active</option>
+          <option value="out" ${p.status==='out'?'selected':''}>Out of Stock</option>
+          <option value="hidden" ${p.status==='hidden'?'selected':''}>Hidden</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <input class="finput" id="pdesc_${p.id}" value="${p.desc||''}" placeholder="Short description (optional)" style="font-size:12px;">
+    </div>
+  </div>`;
+}
+
+window.addProductRow = function(){
+  const id = 'new_' + Date.now();
+  const p = {id, name:'', price:0, unit:'kg', category: categories[0]||'Cakes', stock:0, reorder:0, minQty:1, retDisc:0, wsDisc:0, status:'active', desc:''};
+  products.push(p);
+  renderProducts();
+  // Focus on the new name input
+  setTimeout(()=>{ const el=$('pn_'+id); if(el){el.focus();el.scrollIntoView({behavior:'smooth',block:'center'});} },100);
+};
+
+window.deleteProduct = async function(id){
+  if(!confirm('Remove this product?')) return;
+  if(!id.startsWith('new_')){
+    try{ await deleteDoc(doc(db,'sharedCatalogue',id)); showToast('Product removed.'); }
+    catch(e){showToast('Error: '+e.message);}
+  }
+  products = products.filter(p=>p.id!==id);
+  renderProducts();
+};
+
+window.saveProducts = async function(){
+  setSyncDot('ing');
+  const batch = writeBatch(db);
+  let count=0, errors=0;
+  for(const p of products){
+    const name=($('pn_'+p.id)?.value||'').trim();
+    if(!name) continue;
+    const price=parseFloat($('pp_'+p.id)?.value)||0;
+    const data={
+      name, price,
+      unit:$('pu_'+p.id)?.value||'kg',
+      category:$('pc_'+p.id)?.value||'Other',
+      stock:parseFloat($('ps_'+p.id)?.value)||0,
+      reorder:parseFloat($('pr_'+p.id)?.value)||0,
+      minQty:parseFloat($('pm_'+p.id)?.value)||1,
+      retDisc:parseFloat($('prd_'+p.id)?.value)||0,
+      wsDisc:parseFloat($('pwd_'+p.id)?.value)||0,
+      status:$('pst_'+p.id)?.value||'active',
+      desc:$('pdesc_'+p.id)?.value||'',
+      updatedAt:serverTimestamp(),
+      updatedBy:currentUser.email
+    };
+    const docId = p.id.startsWith('new_') ? 'prod'+Date.now()+Math.floor(Math.random()*9999) : p.id;
+    if(!p.id.startsWith('new_')) data.id=docId; else data.id=docId;
+    batch.set(doc(db,'sharedCatalogue',docId),{...data,id:docId},{merge:true});
+    count++;
+  }
+  try{
+    await batch.commit();
+    showToast(`✅ ${count} products saved & synced to Field App!`);
+    setSyncDot('ok');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+window.exportProducts = function(){
+  if(!products.length){showToast('No products to export.');return;}
+  const rows=[['name','price','unit','category','stock','reorder','min_qty','retail_disc_pct','wholesale_disc_pct','status','description']];
+  products.forEach(p=>rows.push([p.name,p.price,p.unit,p.category,p.stock||0,p.reorder||0,p.minQty||1,p.retDisc||0,p.wsDisc||0,p.status||'active',p.desc||'']));
+  downloadCSV(rows,'products_catalogue.csv');
+};
+
+window.downloadProductTemplate = function(){
+  const rows=[
+    ['name','price','unit','category','stock','reorder','min_qty','retail_disc_pct','wholesale_disc_pct','status','description'],
+    ['Chocolate Truffle Cake','1900','kg','Cakes','10','2','0.5','10','15','active','Rich chocolate with truffle'],
+    ['Butterscotch Cake','1800','kg','Cakes','8','2','0.5','10','15','active','Classic butterscotch'],
+    ['Cupcake Box','350','box','Cupcakes','20','5','1','5','10','active','Box of 6 cupcakes'],
+    ['Cookies Pack','200','packet','Cookies','15','3','1','0','0','active','Assorted cookies'],
+  ];
+  downloadCSV(rows,'product_template.csv');
+};
+
+// ══════════════════════════════════════
+// PRICE LISTS
+// ══════════════════════════════════════
+function loadPriceLists(){
+  onSnapshot(collection(db,'sharedPriceLists'), snap=>{
+    priceLists = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPriceLists();
+  });
+}
+
+function renderPriceLists(){
+  const el=$('priceListsContainer');
+  if(!priceLists.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">💰</div><p>No price lists yet.<br>Tap <b>+ New Price List</b> to create one.</p></div>';
+    return;
+  }
+  el.innerHTML=priceLists.map(pl=>`
+    <div class="sec" style="margin:0 0 10px;">
+      <div class="sec-title-row">
+        <div class="sec-title" style="font-size:13px;">💰 ${pl.name} <span style="font-size:10px;color:#7a8099;font-weight:400;text-transform:none;">(${pl.applies||'all'})</span></div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="editPriceList('${pl.id}')">✎ Edit</button>
+          <button class="btn btn-sm btn-red" onclick="deletePriceList('${pl.id}')">✕</button>
+        </div>
+      </div>
+      ${pl.desc?`<div style="font-size:12px;color:#7a8099;margin-bottom:8px;">${pl.desc}</div>`:''}
+      ${pl.defaultDisc?`<div style="font-size:12px;color:#3ecf8e;margin-bottom:8px;">Default: -${pl.defaultDisc}% on all items</div>`:''}
+      <div style="font-size:12px;color:#5a6070;">${(pl.items||[]).length} items · Last updated: ${pl.updatedAt?.toDate?pl.updatedAt.toDate().toLocaleDateString('en-IN'):'—'}</div>
+    </div>`).join('');
+}
+
+window.addPriceList = function(){ openPLModal(); };
+window.editPriceList = function(id){ openPLModal(id); };
+
+function openPLModal(id=null){
+  editPLId=id;
+  $('plMTitle').textContent=id?'Edit Price List':'New Price List';
+  if(id){
+    const pl=priceLists.find(x=>x.id===id); if(!pl) return;
+    $('pl_name').value=pl.name||'';
+    $('pl_applies').value=pl.applies||'all';
+    $('pl_disc').value=pl.defaultDisc||'';
+    $('pl_desc').value=pl.desc||'';
+    renderPLItems(pl.items||[]);
+  } else {
+    $('pl_name').value=''; $('pl_applies').value='all'; $('pl_disc').value=''; $('pl_desc').value='';
+    renderPLItems([]);
+  }
+  openModal('plModal');
+}
+
+function renderPLItems(existingItems){
+  const el=$('plItemsContainer');
+  el.innerHTML=products.map(p=>{
+    const existing = existingItems.find(i=>i.productId===p.id);
+    return `<div class="pl-row">
+      <div class="pl-item-name">${p.name} <span style="font-size:10px;color:#5a6070;">(${p.unit})</span></div>
+      <input class="pl-price-input" id="plp_${p.id}" type="number"
+        value="${existing?existing.price:p.price}" placeholder="${p.price}">
+      <div class="pl-unit">${bizProfile.currency||'₹'}/${p.unit}</div>
+    </div>`;
+  }).join('') || '<div style="color:#7a8099;font-size:12px;">Add products first in the Products tab.</div>';
+}
+
+window.savePriceList = async function(){
+  const name=$('pl_name').value.trim();
+  if(!name){showToast('Price list name required.');return;}
+  const items=products.map(p=>({
+    productId:p.id, name:p.name, unit:p.unit,
+    price:parseFloat($('plp_'+p.id)?.value)||p.price||0
+  }));
+  const data={
+    name, applies:$('pl_applies').value,
+    defaultDisc:parseFloat($('pl_disc').value)||0,
+    desc:$('pl_desc').value.trim(),
+    items, updatedAt:serverTimestamp()
+  };
+  try{
+    setSyncDot('ing');
+    const id=editPLId||(('pl'+Date.now()));
+    await setDoc(doc(db,'sharedPriceLists',id),{...data,id},{merge:true});
+    showToast('✅ Price list saved & synced!');
+    setSyncDot('ok');
+    closeModal('plModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+window.deletePriceList = async function(id){
+  if(!confirm('Delete this price list?')) return;
+  await deleteDoc(doc(db,'sharedPriceLists',id));
+  showToast('Deleted.');
+};
+
+window.exportPriceLists = function(){
+  if(!priceLists.length){showToast('No price lists to export.');return;}
+  let rows=[['list_name','applies','product','unit','price']];
+  priceLists.forEach(pl=>(pl.items||[]).forEach(it=>rows.push([pl.name,pl.applies,it.name,it.unit,it.price])));
+  downloadCSV(rows,'price_lists.csv');
+};
+
+// ══════════════════════════════════════
+// SCHEMES
+// ══════════════════════════════════════
+function loadSchemes(){
+  onSnapshot(collection(db,'sharedSchemes'), snap=>{
+    schemes = snap.docs.map(d=>({id:d.id,...d.data()}));
+    schemes.sort((a,b)=>(b.createdAt?.toMillis?.()??0)-(a.createdAt?.toMillis?.()??0));
+    renderSchemes();
+  });
+}
+
+function renderSchemes(){
+  const el=$('schemesList');
+  if(!schemes.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">🎉</div><p>No schemes yet.<br>Add your first offer or discount!</p></div>';
+    return;
+  }
+  const today=toDay();
+  el.innerHTML=schemes.map(s=>{
+    const isActive=(!s.to||s.to>=today)&&(!s.from||s.from<=today);
+    const typeLabels={percent_discount:'% Discount',flat_discount:'Flat Off',buy_x_get_y:'Buy X Get Y',free_delivery:'Free Delivery',fixed_price:'Fixed Price',seasonal:'Seasonal'};
+    return `<div class="scheme-row">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div>
+          <span class="sch-name">${s.name}</span>
+          <span class="sch-badge ${isActive?'sch-active':'sch-expired'}">${isActive?'🟢 Active':'🔴 Expired'}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="editScheme('${s.id}')">✎</button>
+          <button class="btn btn-sm btn-red" onclick="deleteScheme('${s.id}')">✕</button>
+        </div>
+      </div>
+      <div class="sch-meta">${typeLabels[s.type]||s.type}${s.value?' · '+s.value+(s.type==='percent_discount'?'%':''):''}${s.minOrder?' · Min: '+bizProfile.currency+(s.minOrder):''}</div>
+      <div class="sch-meta">${s.desc||''}</div>
+      <div class="sch-meta" style="margin-top:4px;">
+        Applies to: <b>${{all:'All',retail:'Retail',wholesale:'Wholesale',customer:'Customers'}[s.applies]||s.applies}</b>
+        ${s.from||s.to?' · '+((s.from||'')+(s.to?' → '+s.to:'')):''}
+      </div>
+      ${s.products?`<div class="sch-meta">Products: ${s.products}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+window.openSchemeModal = function(){ $('sch_id').value=''; $('schemeMTitle').textContent='Add Scheme / Offer'; ['name','desc','products','notes'].forEach(f=>$('sch_'+f).value=''); ['value','minOrder'].forEach(f=>$('sch_'+f).value=''); $('sch_type').value='percent_discount'; $('sch_applies').value='all'; $('sch_from').value=toDay(); $('sch_to').value=''; openModal('schemeModal'); };
+
+window.editScheme = function(id){
+  const s=schemes.find(x=>x.id===id); if(!s) return;
+  $('sch_id').value=id; $('schemeMTitle').textContent='Edit Scheme';
+  ['name','desc','products','notes','type','applies','from','to'].forEach(f=>{ const el=$('sch_'+f); if(el) el.value=s[f]||''; });
+  $('sch_value').value=s.value||''; $('sch_minOrder').value=s.minOrder||'';
+  openModal('schemeModal');
+};
+
+window.saveScheme = async function(){
+  const name=$('sch_name').value.trim();
+  if(!name){showToast('Scheme name required.');return;}
+  const data={
+    name, type:$('sch_type').value, desc:$('sch_desc').value.trim(),
+    value:parseFloat($('sch_value').value)||0, minOrder:parseFloat($('sch_minOrder').value)||0,
+    applies:$('sch_applies').value, products:$('sch_products').value.trim(),
+    from:$('sch_from').value, to:$('sch_to').value,
+    notes:$('sch_notes').value.trim(), updatedAt:serverTimestamp()
+  };
+  const id=$('sch_id').value||('sch'+Date.now());
+  try{
+    setSyncDot('ing');
+    await setDoc(doc(db,'sharedSchemes',id),{...data,id},{merge:true});
+    showToast('🎉 Scheme saved & visible in Field App!');
+    setSyncDot('ok');
+    closeModal('schemeModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+window.deleteScheme = async function(id){
+  if(!confirm('Delete this scheme?')) return;
+  await deleteDoc(doc(db,'sharedSchemes',id));
+  showToast('Scheme deleted.');
+};
+
+window.exportSchemes = function(){
+  if(!schemes.length){showToast('No schemes to export.');return;}
+  const rows=[['name','type','description','value','min_order','applies','products','valid_from','valid_to']];
+  schemes.forEach(s=>rows.push([s.name,s.type,s.desc,s.value,s.minOrder,s.applies,s.products,s.from,s.to]));
+  downloadCSV(rows,'schemes.csv');
+};
+
+// ══════════════════════════════════════
+// IMPORT CSV
+// ══════════════════════════════════════
+window.showImportModal = function(mode){
+  importMode=mode;
+  $('importTitle').textContent=mode==='products'?'📥 Import Products':mode==='pricelist'?'📥 Import Price List':'📥 Import Schemes';
+  $('importHint').innerHTML={
+    products:'Columns: <b>name, price, unit, category, stock, reorder, min_qty, retail_disc_pct, wholesale_disc_pct, status, description</b>',
+    pricelist:'Columns: <b>list_name, applies, product, unit, price</b>',
+    schemes:'Columns: <b>name, type, description, value, min_order, applies, products, valid_from, valid_to</b>'
+  }[mode]||'';
+  $('importPreview').innerHTML='';
+  $('csvFileInput').value='';
+  openModal('importModal');
+};
+
+window.handleCSVFile = async function(e){
+  const file=e.target.files[0]; if(!file) return;
+  const text=await file.text();
+  const lines=text.trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const rows=lines.slice(1).map(l=>{
+    const vals=l.split(',').map(v=>v.trim().replace(/^"|"$/g,''));
+    const obj={}; headers.forEach((h,i)=>obj[h]=vals[i]||''); return obj;
+  }).filter(r=>Object.values(r).some(v=>v));
+
+  $('importPreview').innerHTML=`<div style="background:#1a1f28;border-radius:8px;padding:12px;font-size:12px;">
+    <b style="color:#3ecf8e;">✅ ${rows.length} rows ready to import</b><br>
+    <div style="color:#7a8099;margin-top:6px;">${rows.slice(0,3).map(r=>Object.values(r)[0]).join(', ')}${rows.length>3?'...':''}</div>
+    <button class="btn btn-gold" style="margin-top:10px;width:100%;padding:10px;" onclick="confirmImport(${JSON.stringify(rows).replace(/"/g,'&quot;')})">📥 Import ${rows.length} rows</button>
+  </div>`;
+};
+
+window.confirmImport = async function(rows){
+  setSyncDot('ing');
+  const batch=writeBatch(db);
+  let count=0;
+  if(importMode==='products'){
+    rows.forEach(r=>{
+      if(!r.name) return;
+      const id='prod'+Date.now()+Math.floor(Math.random()*9999);
+      batch.set(doc(db,'sharedCatalogue',id),{
+        id,name:r.name,price:parseFloat(r.price)||0,unit:r.unit||'kg',
+        category:r.category||'Other',stock:parseFloat(r.stock)||0,
+        reorder:parseFloat(r.reorder)||0,minQty:parseFloat(r.min_qty)||1,
+        retDisc:parseFloat(r.retail_disc_pct)||0,wsDisc:parseFloat(r.wholesale_disc_pct)||0,
+        status:r.status||'active',desc:r.description||'',
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp(),updatedBy:currentUser.email
+      }); count++;
+    });
+  } else if(importMode==='pricelist'){
+    // Group by list_name
+    const grouped={};
+    rows.forEach(r=>{ if(!grouped[r.list_name]) grouped[r.list_name]=[]; grouped[r.list_name].push(r); });
+    Object.entries(grouped).forEach(([listName,items])=>{
+      const id='pl'+Date.now()+Math.floor(Math.random()*999);
+      batch.set(doc(db,'sharedPriceLists',id),{
+        id,name:listName,applies:items[0]?.applies||'all',
+        items:items.map(r=>({name:r.product,unit:r.unit,price:parseFloat(r.price)||0})),
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      }); count++;
+    });
+  } else if(importMode==='schemes'){
+    rows.forEach(r=>{
+      if(!r.name) return;
+      const id='sch'+Date.now()+Math.floor(Math.random()*9999);
+      batch.set(doc(db,'sharedSchemes',id),{
+        id,name:r.name,type:r.type||'percent_discount',desc:r.description||'',
+        value:parseFloat(r.value)||0,minOrder:parseFloat(r.min_order)||0,
+        applies:r.applies||'all',products:r.products||'',from:r.valid_from||'',to:r.valid_to||'',
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      }); count++;
+    });
+  }
+  try{
+    await batch.commit();
+    showToast(`✅ ${count} items imported & synced!`);
+    setSyncDot('ok');
+    closeModal('importModal');
+  } catch(e){showToast('Error: '+e.message);setSyncDot('err');}
+};
+
+// ══════════════════════════════════════
+// CSV UTILITY
+// ══════════════════════════════════════
+function downloadCSV(rows,filename){
+  const csv=rows.map(r=>r.map(x=>`"${(x??'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=filename; a.click();
+}
+
+// ══════════════════════════════════════
+// PAGE NAV
+// ══════════════════════════════════════
+window.showPage = function(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  $('page'+page)?.classList.add('active');
+  $('bn_'+page)?.classList.add('active');
+};
+
+// ── Input event listeners for preview (after DOM ready) ──
+['p_bizName','p_tagline','p_phone'].forEach(id=>{
+  setTimeout(()=>{ const el=$(id); if(el) el.addEventListener('input',updatePreview); },500);
+});
+
+</script>
+</body>
+</html>
